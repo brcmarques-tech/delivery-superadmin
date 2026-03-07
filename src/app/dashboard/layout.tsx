@@ -10,6 +10,8 @@ const navItems = [
   { href: "/dashboard/users", label: "Usuarios" },
   { href: "/dashboard/stores", label: "Lojas" },
   { href: "/dashboard/orders", label: "Pedidos" },
+  { href: "/dashboard/plans", label: "Planos" },
+  { href: "/dashboard/promotions", label: "Promocoes" },
   { href: "/dashboard/notifications", label: "Notificacoes" },
 ];
 

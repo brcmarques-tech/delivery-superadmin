@@ -16,6 +16,7 @@ export const GET_DASHBOARD_STATS = gql`
       totalStores
       totalOrders
       totalRevenue
+      platformRevenue
       usersByRole { role count }
       ordersByStatus { status count }
       pendingApprovals
@@ -29,6 +30,7 @@ export const GET_ALL_USERS = gql`
       id name email phone role isActive createdAt
       pendingRole cpf vehicleType vehiclePlate identityPhotoUrl
       approvedAt rejectedAt rejectionReason
+      vendorPlan planExpiresAt
       stores { id name }
     }
   }
@@ -97,11 +99,49 @@ export const GET_ALL_ORDERS = gql`
   query AllOrders {
     allOrders {
       id orderNumber status total subtotal deliveryFee
+      platformCommission platformDeliveryFee
       deliveryAddress notes createdAt
       customer { id name email phone }
       store { id name }
       items { id quantity totalPrice product { name price } }
       delivery { id deliverer { name phone } pickedUpAt deliveredAt }
     }
+  }
+`;
+
+export const UPDATE_VENDOR_PLAN = gql`
+  mutation UpdateVendorPlan($id: String!, $plan: VendorPlan!, $durationMonths: Int) {
+    updateVendorPlan(id: $id, plan: $plan, durationMonths: $durationMonths) {
+      id vendorPlan planExpiresAt
+    }
+  }
+`;
+
+export const GET_AVAILABLE_PLANS = gql`
+  query AvailablePlans {
+    availablePlans {
+      plan maxStores commissionRate platformDeliveryFee canPromote monthlyPrice
+    }
+  }
+`;
+
+export const GET_ALL_PROMOTIONS = gql`
+  query AllPromotions {
+    allPromotions {
+      id title description imageUrl startDate endDate isActive isPaid price createdAt
+      store { id name owner { id name } }
+    }
+  }
+`;
+
+export const TOGGLE_PROMOTION_ACTIVE = gql`
+  mutation TogglePromotionActive($id: String!) {
+    togglePromotionActive(id: $id) { id isActive }
+  }
+`;
+
+export const MARK_PROMOTION_PAID = gql`
+  mutation MarkPromotionPaid($id: String!) {
+    markPromotionPaid(id: $id) { id isPaid }
   }
 `;
