@@ -42,9 +42,9 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex bg-gray-900">
       <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
-        <div className="p-6 border-b border-gray-700">
-          <h1 className="text-xl font-bold text-purple-400">bcmTech</h1>
-          <p className="text-sm text-gray-400">Super Admin</p>
+        <div className="p-4 border-b border-gray-700">
+          <img src="/logo.svg" alt="Delivery" className="h-12" />
+          <p className="text-xs text-gray-500 mt-1 text-center">Super Admin</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">

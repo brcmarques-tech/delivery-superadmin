@@ -128,8 +128,10 @@ export const GET_AVAILABLE_PLANS = gql`
 export const GET_ALL_PROMOTIONS = gql`
   query AllPromotions {
     allPromotions {
-      id title description imageUrl startDate endDate isActive isPaid price createdAt
+      id title description imageUrl startDate endDate isActive isPaid
+      promotionalPrice adCost createdAt
       store { id name owner { id name } }
+      product { id name imageUrl price }
     }
   }
 `;
@@ -143,5 +145,17 @@ export const TOGGLE_PROMOTION_ACTIVE = gql`
 export const MARK_PROMOTION_PAID = gql`
   mutation MarkPromotionPaid($id: String!) {
     markPromotionPaid(id: $id) { id isPaid }
+  }
+`;
+
+export const GET_PROMO_PRICE_PER_DAY = gql`
+  query PromoPricePerDay {
+    promoPricePerDay
+  }
+`;
+
+export const SET_PROMO_PRICE_PER_DAY = gql`
+  mutation SetPromoPricePerDay($price: Float!) {
+    setPromoPricePerDay(price: $price) { id key value }
   }
 `;

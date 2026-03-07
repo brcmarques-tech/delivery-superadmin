@@ -32,9 +32,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-700">
-        <h1 className="text-3xl font-bold text-center text-purple-400 mb-2">
-          bcmTech
-        </h1>
+        <div className="flex justify-center mb-6">
+          <img src="/logo.svg" alt="Delivery" className="h-16" />
+        </div>
         <p className="text-gray-400 text-center mb-8">Super Admin</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
