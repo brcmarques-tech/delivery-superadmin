@@ -5,6 +5,7 @@ import { GET_ALL_ORDERS } from "@/lib/graphql";
 import { useState } from "react";
 
 const statusLabels: Record<string, { label: string; color: string }> = {
+  AWAITING_PAYMENT: { label: "Aguardando pagamento", color: "bg-orange-500/20 text-orange-400" },
   PENDING: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400" },
   ACCEPTED: { label: "Aceito", color: "bg-blue-500/20 text-blue-400" },
   PREPARING: { label: "Preparando", color: "bg-indigo-500/20 text-indigo-400" },
@@ -15,7 +16,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   CANCELLED: { label: "Cancelado", color: "bg-red-500/20 text-red-400" },
 };
 
-const allStatuses = ["", "PENDING", "ACCEPTED", "PREPARING", "READY", "PICKED_UP", "DELIVERING", "DELIVERED", "CANCELLED"];
+const allStatuses = ["", "AWAITING_PAYMENT", "PENDING", "ACCEPTED", "PREPARING", "READY", "PICKED_UP", "DELIVERING", "DELIVERED", "CANCELLED"];
 
 export default function OrdersPage() {
   const { data, loading } = useQuery(GET_ALL_ORDERS, { pollInterval: 15000 });

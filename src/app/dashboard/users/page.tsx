@@ -20,7 +20,7 @@ const roleColors: Record<string, string> = {
   SUPERADMIN: "bg-purple-500/20 text-purple-400",
 };
 
-const roles = ["CUSTOMER", "VENDOR", "DELIVERER", "ADMIN", "SUPERADMIN"];
+const roles = ["CUSTOMER", "VENDOR", "DELIVERER", "SUPERADMIN"];
 
 export default function UsersPage() {
   const { data, loading, refetch } = useQuery(GET_ALL_USERS);

@@ -28,7 +28,7 @@ export default function PlansPage() {
 
   const vendors =
     data?.allUsers?.filter(
-      (u: any) => u.role === "VENDOR" || u.role === "ADMIN"
+      (u: any) => u.role === "VENDOR"
     ) || [];
 
   const filtered = vendors.filter(
