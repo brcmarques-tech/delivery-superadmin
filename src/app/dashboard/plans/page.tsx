@@ -75,8 +75,7 @@ export default function PlansPage() {
             </p>
             <ul className="mt-4 space-y-2 text-sm text-gray-300">
               <li>Ate {p.maxStores} loja(s)</li>
-              <li>Comissao: {(p.commissionRate * 100).toFixed(0)}%</li>
-              <li>Taxa por entrega: R$ {Number(p.platformDeliveryFee).toFixed(2)}</li>
+              <li>Sem comissao por pedido</li>
               <li>
                 Promocoes:{" "}
                 {p.canPromote ? (

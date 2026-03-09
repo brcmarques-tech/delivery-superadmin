@@ -73,7 +73,26 @@ export default function DashboardPage() {
           <p className="text-3xl font-bold text-purple-400 mt-1">
             R$ {Number(stats.platformRevenue).toFixed(2)}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Comissoes + Taxas</p>
+          <p className="text-xs text-gray-500 mt-1">Planos + Promocoes</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-gray-800 rounded-2xl p-6 border border-cyan-800">
+          <p className="text-sm text-gray-400">Entregadores Online</p>
+          <p className="text-3xl font-bold text-cyan-400 mt-1">{stats.onlineDeliverers}</p>
+        </div>
+        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+          <p className="text-sm text-gray-400">Total Entregas</p>
+          <p className="text-3xl font-bold text-white mt-1">{stats.totalDeliveries}</p>
+        </div>
+        <div className="bg-gray-800 rounded-2xl p-6 border border-yellow-800">
+          <p className="text-sm text-gray-400">Entregas Ativas</p>
+          <p className="text-3xl font-bold text-yellow-400 mt-1">{stats.activeDeliveries}</p>
+        </div>
+        <div className="bg-gray-800 rounded-2xl p-6 border border-emerald-800">
+          <p className="text-sm text-gray-400">Entregas Concluidas</p>
+          <p className="text-3xl font-bold text-emerald-400 mt-1">{stats.completedDeliveries}</p>
         </div>
       </div>
 

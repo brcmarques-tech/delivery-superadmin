@@ -80,18 +80,64 @@ export default function StoresPage() {
                 <span className="text-gray-500">Cidade</span>
                 <span className="text-gray-300">{store.city} - {store.state}</span>
               </div>
+              {store.street && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Endereco</span>
+                  <span className="text-gray-300 text-right max-w-[200px]">{store.street}, {store.number} - {store.neighborhood}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Telefone</span>
                 <span className="text-gray-300">{store.phone}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Taxa entrega</span>
-                <span className="text-gray-300">R$ {Number(store.deliveryFee).toFixed(2)}</span>
+                <span className="text-gray-500">Entrega</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                  store.hasOwnDelivery ? "bg-blue-500/20 text-blue-400" : "bg-purple-500/20 text-purple-400"
+                }`}>
+                  {store.hasOwnDelivery ? "Propria" : "App"}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Tempo estimado</span>
-                <span className="text-gray-300">{store.estimatedDeliveryMinutes} min</span>
-              </div>
+              {store.freeDelivery ? (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Taxa entrega</span>
+                  <span className="text-emerald-400 font-semibold">Gratis</span>
+                </div>
+              ) : (
+                <>
+                  {store.freeDeliveryAbove && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Gratis acima de</span>
+                      <span className="text-gray-300">R$ {Number(store.freeDeliveryAbove).toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              {store.hasOwnDelivery ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Tempo estimado</span>
+                    <span className="text-gray-300">{store.estimatedDeliveryMinutes} min</span>
+                  </div>
+                  {Number(store.minimumOrder) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Pedido minimo</span>
+                      <span className="text-gray-300">R$ {Number(store.minimumOrder).toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Tempo estimado</span>
+                  <span className="text-gray-400 text-xs">Calculado por distancia</span>
+                </div>
+              )}
+              {store.deliveryStartTime && store.deliveryEndTime && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Horario entregas</span>
+                  <span className="text-gray-300">{store.deliveryStartTime} - {store.deliveryEndTime}</span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">

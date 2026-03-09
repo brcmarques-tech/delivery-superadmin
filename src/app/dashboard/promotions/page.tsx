@@ -7,25 +7,41 @@ import {
   MARK_PROMOTION_PAID,
   GET_PROMO_PRICE_PER_DAY,
   SET_PROMO_PRICE_PER_DAY,
+  GET_DELIVERY_PRICES,
+  SET_DELIVERY_PRICE_PER_KM,
+  SET_DELIVERY_BASE_PRICE,
 } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 
 export default function PromotionsPage() {
   const { data, loading, refetch } = useQuery(GET_ALL_PROMOTIONS);
   const { data: priceData, refetch: refetchPrice } = useQuery(GET_PROMO_PRICE_PER_DAY);
+  const { data: deliveryData, refetch: refetchDelivery } = useQuery(GET_DELIVERY_PRICES);
   const [toggleActive] = useMutation(TOGGLE_PROMOTION_ACTIVE);
   const [markPaid] = useMutation(MARK_PROMOTION_PAID);
   const [setPromoPrice, { loading: savingPrice }] = useMutation(SET_PROMO_PRICE_PER_DAY);
+  const [setDeliveryPerKm, { loading: savingKm }] = useMutation(SET_DELIVERY_PRICE_PER_KM);
+  const [setDeliveryBase, { loading: savingBase }] = useMutation(SET_DELIVERY_BASE_PRICE);
 
   const promotions = data?.allPromotions || [];
   const currentPrice = priceData?.promoPricePerDay ?? 1;
   const [priceInput, setPriceInput] = useState("");
+
+  const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;
+  const currentBase = deliveryData?.deliveryBasePrice ?? 3;
+  const [perKmInput, setPerKmInput] = useState("");
+  const [baseInput, setBaseInput] = useState("");
 
   useEffect(() => {
     if (priceData?.promoPricePerDay != null) {
       setPriceInput(String(priceData.promoPricePerDay));
     }
   }, [priceData]);
+
+  useEffect(() => {
+    if (deliveryData?.deliveryPricePerKm != null) setPerKmInput(String(deliveryData.deliveryPricePerKm));
+    if (deliveryData?.deliveryBasePrice != null) setBaseInput(String(deliveryData.deliveryBasePrice));
+  }, [deliveryData]);
 
   async function handleToggleActive(id: string) {
     await toggleActive({ variables: { id } });
@@ -43,6 +59,20 @@ export default function PromotionsPage() {
     if (isNaN(val) || val < 0) return;
     await setPromoPrice({ variables: { price: val } });
     refetchPrice();
+  }
+
+  async function handleSaveDeliveryPerKm() {
+    const val = parseFloat(perKmInput);
+    if (isNaN(val) || val < 0) return;
+    await setDeliveryPerKm({ variables: { price: val } });
+    refetchDelivery();
+  }
+
+  async function handleSaveDeliveryBase() {
+    const val = parseFloat(baseInput);
+    if (isNaN(val) || val < 0) return;
+    await setDeliveryBase({ variables: { price: val } });
+    refetchDelivery();
   }
 
   const pending = promotions.filter((p: any) => !p.isPaid);
@@ -80,6 +110,52 @@ export default function PromotionsPage() {
             </button>
           </div>
           <span className="text-gray-500 text-xs">Atual: R$ {currentPrice.toFixed(2)}/dia</span>
+        </div>
+      </div>
+
+      {/* Config de taxa de entrega */}
+      <div className="bg-gray-800 rounded-2xl border border-gray-700 p-5 mb-6">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3">Taxa de entrega (por distancia)</h2>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-gray-300 text-sm">Preco base:</label>
+            <span className="text-gray-400">R$</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={baseInput}
+              onChange={(e) => setBaseInput(e.target.value)}
+              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+            <button
+              onClick={handleSaveDeliveryBase}
+              disabled={savingBase || parseFloat(baseInput) === currentBase}
+              className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
+            >
+              {savingBase ? "..." : "Salvar"}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-gray-300 text-sm">Preco por km:</label>
+            <span className="text-gray-400">R$</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={perKmInput}
+              onChange={(e) => setPerKmInput(e.target.value)}
+              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+            <button
+              onClick={handleSaveDeliveryPerKm}
+              disabled={savingKm || parseFloat(perKmInput) === currentPerKm}
+              className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
+            >
+              {savingKm ? "..." : "Salvar"}
+            </button>
+          </div>
+          <span className="text-gray-500 text-xs">Ex: 5km = R$ {(currentBase + 5 * currentPerKm).toFixed(2)}</span>
         </div>
       </div>
 

@@ -93,7 +93,20 @@ export default function UsersPage() {
           <tbody>
             {filtered.map((user: any) => (
               <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                <td className="p-4 text-white font-medium">{user.name}</td>
+                <td className="p-4 text-white font-medium">
+                  <span>{user.name}</span>
+                  {(user.role === "VENDOR" || user.role === "DELIVERER") && (
+                    <span
+                      className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        user.mpConnected
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-gray-600/30 text-gray-500"
+                      }`}
+                    >
+                      {user.mpConnected ? "MP \u2713" : "MP \u2717"}
+                    </span>
+                  )}
+                </td>
                 <td className="p-4 text-gray-300">{user.email}</td>
                 <td className="p-4 text-gray-300">{user.phone}</td>
                 <td className="p-4">

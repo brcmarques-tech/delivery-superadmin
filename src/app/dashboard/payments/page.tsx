@@ -1,0 +1,156 @@
+"use client";
+
+import { useQuery } from "@apollo/client";
+import { GET_ALL_PAYMENTS } from "@/lib/graphql";
+import { useState } from "react";
+
+const typeLabels: Record<string, string> = {
+  PLAN_UPGRADE: "Plano",
+  PROMOTION: "Promocao",
+  DELIVERER_PAYOUT: "Repasse Entregador",
+  VENDOR_PAYOUT: "Repasse Vendedor",
+};
+
+const statusLabels: Record<string, string> = {
+  pending: "Pendente",
+  approved: "Aprovado",
+  rejected: "Rejeitado",
+};
+
+const statusColors: Record<string, string> = {
+  pending: "bg-yellow-500/20 text-yellow-400",
+  approved: "bg-emerald-500/20 text-emerald-400",
+  rejected: "bg-red-500/20 text-red-400",
+};
+
+export default function PaymentsPage() {
+  const { data, loading } = useQuery(GET_ALL_PAYMENTS, { pollInterval: 30000 });
+  const [filter, setFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  const payments = data?.allPayments || [];
+
+  const filtered = payments.filter((p: any) => {
+    if (typeFilter !== "ALL" && p.type !== typeFilter) return false;
+    if (statusFilter !== "ALL" && p.status !== statusFilter) return false;
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    return (
+      p.user?.name?.toLowerCase().includes(q) ||
+      p.user?.email?.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q)
+    );
+  });
+
+  const totalApproved = payments
+    .filter((p: any) => p.status === "approved")
+    .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+
+  const totalPending = payments
+    .filter((p: any) => p.status === "pending")
+    .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+
+  if (loading) return <p className="text-gray-400">Carregando...</p>;
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-white mb-2">Pagamentos da Plataforma ({payments.length})</h1>
+      <p className="text-sm text-gray-500 mb-6">Planos, promocoes e repasses de entregadores — pedidos de lojas sao processados via split direto pelo Mercado Pago</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+          <p className="text-sm text-gray-400">Total pagamentos</p>
+          <p className="text-2xl font-bold text-white">{payments.length}</p>
+        </div>
+        <div className="bg-gray-800 rounded-2xl p-4 border border-emerald-800">
+          <p className="text-sm text-gray-400">Receita aprovada</p>
+          <p className="text-2xl font-bold text-emerald-400">R$ {totalApproved.toFixed(2)}</p>
+        </div>
+        <div className="bg-gray-800 rounded-2xl p-4 border border-yellow-800">
+          <p className="text-sm text-gray-400">Pendente</p>
+          <p className="text-2xl font-bold text-yellow-400">R$ {totalPending.toFixed(2)}</p>
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-6 flex-wrap">
+        <input
+          type="text"
+          placeholder="Buscar por nome, email..."
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="flex-1 min-w-[200px] max-w-md px-4 py-3 bg-gray-800 rounded-xl text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="px-4 py-3 bg-gray-800 rounded-xl text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="ALL">Todos tipos</option>
+          <option value="PLAN_UPGRADE">Planos</option>
+          <option value="PROMOTION">Promocoes</option>
+          <option value="DELIVERER_PAYOUT">Repasse Entregador</option>
+          <option value="VENDOR_PAYOUT">Repasse Vendedor</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-3 bg-gray-800 rounded-xl text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="ALL">Todos status</option>
+          <option value="pending">Pendente</option>
+          <option value="approved">Aprovado</option>
+          <option value="rejected">Rejeitado</option>
+        </select>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-gray-400 border-b border-gray-700">
+              <th className="text-left py-3 px-4">Data</th>
+              <th className="text-left py-3 px-4">Usuario</th>
+              <th className="text-left py-3 px-4">Tipo</th>
+              <th className="text-left py-3 px-4">Descricao</th>
+              <th className="text-right py-3 px-4">Valor</th>
+              <th className="text-center py-3 px-4">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((p: any) => (
+              <tr key={p.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                <td className="py-3 px-4 text-gray-400">
+                  {new Date(p.createdAt).toLocaleDateString("pt-BR")}
+                </td>
+                <td className="py-3 px-4">
+                  <p className="text-white">{p.user?.name}</p>
+                  <p className="text-gray-500 text-xs">{p.user?.email}</p>
+                </td>
+                <td className="py-3 px-4">
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    p.type === "PLAN_UPGRADE" ? "bg-purple-500/20 text-purple-400" : p.type === "DELIVERER_PAYOUT" ? "bg-cyan-500/20 text-cyan-400" : p.type === "VENDOR_PAYOUT" ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400"
+                  }`}>
+                    {typeLabels[p.type] || p.type}
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-gray-300 max-w-xs truncate">{p.description}</td>
+                <td className="py-3 px-4 text-right text-white font-semibold">
+                  R$ {Number(p.amount).toFixed(2)}
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[p.status] || "bg-gray-600 text-gray-300"}`}>
+                    {statusLabels[p.status] || p.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filtered.length === 0 && (
+          <p className="text-gray-500 text-center py-8">Nenhum pagamento encontrado</p>
+        )}
+      </div>
+    </div>
+  );
+}

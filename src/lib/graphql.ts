@@ -20,6 +20,10 @@ export const GET_DASHBOARD_STATS = gql`
       usersByRole { role count }
       ordersByStatus { status count }
       pendingApprovals
+      totalDeliveries
+      activeDeliveries
+      completedDeliveries
+      onlineDeliverers
     }
   }
 `;
@@ -30,7 +34,7 @@ export const GET_ALL_USERS = gql`
       id name email phone role isActive createdAt
       pendingRole cpf vehicleType vehiclePlate identityPhotoUrl
       approvedAt rejectedAt rejectionReason
-      vendorPlan planExpiresAt
+      vendorPlan planExpiresAt mpConnected
       stores { id name }
     }
   }
@@ -52,7 +56,9 @@ export const GET_ALL_STORES = gql`
   query AllStores {
     allStores {
       id name description phone city state isOpen isActive
-      deliveryFee estimatedDeliveryMinutes createdAt
+      hasOwnDelivery freeDelivery deliveryFee estimatedDeliveryMinutes
+      deliveryStartTime deliveryEndTime freeDeliveryAbove minimumOrder
+      street number neighborhood zipCode createdAt
       owner { id name email }
       products { id }
       categories { id }
@@ -99,7 +105,7 @@ export const GET_ALL_ORDERS = gql`
   query AllOrders {
     allOrders {
       id orderNumber status total subtotal deliveryFee
-      platformCommission platformDeliveryFee
+      paymentMethod isPickup customerConfirmedAt
       deliveryAddress notes createdAt
       customer { id name email phone }
       store { id name }
@@ -120,7 +126,7 @@ export const UPDATE_VENDOR_PLAN = gql`
 export const GET_AVAILABLE_PLANS = gql`
   query AvailablePlans {
     availablePlans {
-      plan maxStores commissionRate platformDeliveryFee canPromote monthlyPrice
+      plan maxStores canPromote monthlyPrice
     }
   }
 `;
@@ -157,5 +163,45 @@ export const GET_PROMO_PRICE_PER_DAY = gql`
 export const SET_PROMO_PRICE_PER_DAY = gql`
   mutation SetPromoPricePerDay($price: Float!) {
     setPromoPricePerDay(price: $price) { id key value }
+  }
+`;
+
+export const GET_DELIVERY_PRICES = gql`
+  query DeliveryPrices {
+    deliveryPricePerKm
+    deliveryBasePrice
+  }
+`;
+
+export const SET_DELIVERY_PRICE_PER_KM = gql`
+  mutation SetDeliveryPricePerKm($price: Float!) {
+    setDeliveryPricePerKm(price: $price) { id key value }
+  }
+`;
+
+export const SET_DELIVERY_BASE_PRICE = gql`
+  mutation SetDeliveryBasePrice($price: Float!) {
+    setDeliveryBasePrice(price: $price) { id key value }
+  }
+`;
+
+export const GET_ALL_DELIVERIES = gql`
+  query AllDeliveries {
+    allDeliveries {
+      id pickedUpAt deliveredAt createdAt
+      payoutStatus payoutAmount payoutMpId
+      vendorPayoutStatus vendorPayoutAmount vendorPayoutMpId
+      deliverer { id name phone }
+      order { id orderNumber status total deliveryFee deliveryAddress store { id name hasOwnDelivery } customer { id name phone } }
+    }
+  }
+`;
+
+export const GET_ALL_PAYMENTS = gql`
+  query AllPayments {
+    allPayments {
+      id type description amount status mpPaymentId checkoutUrl createdAt
+      user { id name email }
+    }
   }
 `;

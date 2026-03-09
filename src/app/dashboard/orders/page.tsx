@@ -83,6 +83,16 @@ export default function OrdersPage() {
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${status.color}`}>
                     {status.label}
                   </span>
+                  {order.isPickup && (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-400">
+                      Retirada
+                    </span>
+                  )}
+                  {order.paymentMethod && (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-600/30 text-gray-400">
+                      {order.paymentMethod === "MP_MARKETPLACE" ? "MP Split" : order.paymentMethod}
+                    </span>
+                  )}
                 </div>
                 <span className="text-sm text-gray-500">
                   {new Date(order.createdAt).toLocaleString("pt-BR")}
@@ -131,6 +141,26 @@ export default function OrdersPage() {
                   R$ {Number(order.total).toFixed(2)}
                 </span>
               </div>
+
+              {!order.isPickup && order.delivery && Number(order.deliveryFee) > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <p className="text-xs text-gray-500 mb-2 font-semibold uppercase tracking-wider">Divisao do pagamento</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="bg-orange-500/10 rounded-xl px-3 py-2">
+                      <p className="text-[11px] text-orange-400/70 mb-0.5">Vendedor recebe</p>
+                      <p className="text-orange-400 font-semibold">
+                        R$ {Number(order.subtotal).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="bg-teal-500/10 rounded-xl px-3 py-2">
+                      <p className="text-[11px] text-teal-400/70 mb-0.5">Entregador recebe</p>
+                      <p className="text-teal-400 font-semibold">
+                        R$ {Number(order.deliveryFee).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {order.delivery && (
                 <div className="mt-3 pt-3 border-t border-gray-700">
