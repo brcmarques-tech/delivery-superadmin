@@ -156,7 +156,7 @@ export default function NotificationsPage() {
                   className="text-gray-500 hover:text-red-400 transition cursor-pointer"
                   title="Apagar"
                 >
-                  ✕
+                  &times;
                 </button>
               </div>
             </div>
@@ -177,7 +177,6 @@ export default function NotificationsPage() {
             )}
           </div>
         ))}
-        </div>
       </div>
     </div>
   );
