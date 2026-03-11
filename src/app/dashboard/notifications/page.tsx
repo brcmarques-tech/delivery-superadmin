@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
-import { GET_NOTIFICATION_LOGS } from "@/lib/graphql";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_NOTIFICATION_LOGS, RESEND_NOTIFICATION } from "@/lib/graphql";
+import { useState } from "react";
 
 interface NotifLog {
   id: string;
@@ -16,11 +17,24 @@ interface NotifLog {
 }
 
 export default function NotificationsPage() {
-  const { data, loading } = useQuery(GET_NOTIFICATION_LOGS, { pollInterval: 15000 });
+  const { data, loading, refetch } = useQuery(GET_NOTIFICATION_LOGS, { pollInterval: 15000 });
+  const [resendNotification] = useMutation(RESEND_NOTIFICATION);
+  const [resending, setResending] = useState<string | null>(null);
 
   const logs: NotifLog[] = data?.notificationLogs || [];
   const totalSent = logs.filter((l) => l.success).length;
   const totalFailed = logs.filter((l) => !l.success).length;
+
+  async function handleResend(id: string) {
+    setResending(id);
+    try {
+      await resendNotification({ variables: { id } });
+      await refetch();
+    } catch (err: any) {
+      alert("Erro ao reenviar: " + err.message);
+    }
+    setResending(null);
+  }
 
   if (loading) return <p className="text-gray-400">Carregando...</p>;
 
@@ -80,7 +94,16 @@ export default function NotificationsPage() {
               <span className="text-gray-300 font-medium">{log.subject}</span> — {log.message}
             </p>
             {log.error && (
-              <p className="text-xs text-red-400 mt-1">Erro: {log.error}</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-red-400">Erro: {log.error}</p>
+                <button
+                  onClick={() => handleResend(log.id)}
+                  disabled={resending === log.id}
+                  className="text-xs px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50 cursor-pointer"
+                >
+                  {resending === log.id ? "Reenviando..." : "Reenviar"}
+                </button>
+              </div>
             )}
           </div>
         ))}

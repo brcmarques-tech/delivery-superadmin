@@ -101,6 +101,12 @@ export const GET_NOTIFICATION_LOGS = gql`
   }
 `;
 
+export const RESEND_NOTIFICATION = gql`
+  mutation ResendNotification($id: String!) {
+    resendNotification(id: $id)
+  }
+`;
+
 export const GET_ALL_ORDERS = gql`
   query AllOrders {
     allOrders {
