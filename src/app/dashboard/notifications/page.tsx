@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_NOTIFICATION_LOGS, RESEND_NOTIFICATION } from "@/lib/graphql";
+import { GET_NOTIFICATION_LOGS, RESEND_NOTIFICATION, DELETE_NOTIFICATION, CLEAR_ALL_NOTIFICATIONS } from "@/lib/graphql";
 import { useState } from "react";
 
 interface NotifLog {
@@ -19,11 +19,20 @@ interface NotifLog {
 export default function NotificationsPage() {
   const { data, loading, refetch } = useQuery(GET_NOTIFICATION_LOGS, { pollInterval: 15000 });
   const [resendNotification] = useMutation(RESEND_NOTIFICATION);
+  const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
+  const [clearAllNotifications] = useMutation(CLEAR_ALL_NOTIFICATIONS);
   const [resending, setResending] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "success" | "failed">("all");
 
   const logs: NotifLog[] = data?.notificationLogs || [];
   const totalSent = logs.filter((l) => l.success).length;
   const totalFailed = logs.filter((l) => !l.success).length;
+
+  const filteredLogs = logs.filter((l) => {
+    if (filter === "success") return l.success;
+    if (filter === "failed") return !l.success;
+    return true;
+  });
 
   async function handleResend(id: string) {
     setResending(id);
@@ -36,11 +45,41 @@ export default function NotificationsPage() {
     setResending(null);
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm("Apagar esta notificacao?")) return;
+    try {
+      await deleteNotification({ variables: { id } });
+      await refetch();
+    } catch (err: any) {
+      alert("Erro ao apagar: " + err.message);
+    }
+  }
+
+  async function handleClearAll() {
+    if (!confirm("Apagar TODAS as notificacoes? Esta acao nao pode ser desfeita.")) return;
+    try {
+      await clearAllNotifications();
+      await refetch();
+    } catch (err: any) {
+      alert("Erro ao limpar: " + err.message);
+    }
+  }
+
   if (loading) return <p className="text-gray-400">Carregando...</p>;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Notificacoes Enviadas</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">Notificacoes Enviadas</h1>
+        {logs.length > 0 && (
+          <button
+            onClick={handleClearAll}
+            className="text-xs px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
+          >
+            Limpar Tudo
+          </button>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
@@ -57,14 +96,36 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {logs.length === 0 && (
+      <div className="flex gap-2 mb-4">
+        {(["all", "success", "failed"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`text-xs px-4 py-2 rounded-lg transition cursor-pointer ${
+              filter === f
+                ? "bg-orange-500 text-white"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+            }`}
+          >
+            {f === "all" ? "Todos" : f === "success" ? "Enviados" : "Falharam"}
+          </button>
+        ))}
+      </div>
+
+      {filteredLogs.length === 0 && logs.length === 0 && (
         <div className="bg-gray-800 rounded-2xl p-12 text-center">
           <p className="text-gray-400 text-lg">Nenhuma notificacao enviada ainda</p>
         </div>
       )}
 
+      {filteredLogs.length === 0 && logs.length > 0 && (
+        <div className="bg-gray-800 rounded-2xl p-12 text-center">
+          <p className="text-gray-400 text-lg">Nenhuma notificacao neste filtro</p>
+        </div>
+      )}
+
       <div className="space-y-3">
-        {logs.map((log) => (
+        {filteredLogs.map((log) => (
           <div
             key={log.id}
             className={`bg-gray-800 rounded-xl p-4 border ${
@@ -88,6 +149,13 @@ export default function NotificationsPage() {
                 <span className="text-gray-500 text-xs">
                   {new Date(log.createdAt).toLocaleString("pt-BR")}
                 </span>
+                <button
+                  onClick={() => handleDelete(log.id)}
+                  className="text-gray-500 hover:text-red-400 transition cursor-pointer"
+                  title="Apagar"
+                >
+                  ✕
+                </button>
               </div>
             </div>
             <p className="text-sm text-gray-400">

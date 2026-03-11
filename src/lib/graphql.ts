@@ -107,6 +107,18 @@ export const RESEND_NOTIFICATION = gql`
   }
 `;
 
+export const DELETE_NOTIFICATION = gql`
+  mutation DeleteNotification($id: ID!) {
+    deleteNotification(id: $id)
+  }
+`;
+
+export const CLEAR_ALL_NOTIFICATIONS = gql`
+  mutation ClearAllNotifications {
+    clearAllNotifications
+  }
+`;
+
 export const GET_ALL_ORDERS = gql`
   query AllOrders {
     allOrders {
