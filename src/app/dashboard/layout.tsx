@@ -42,8 +42,8 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-900">
-      <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+    <div className="h-screen flex bg-gray-900 overflow-hidden">
+      <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 overflow-y-auto">
         <div className="p-4 border-b border-gray-700">
           <img src="/logo.svg" alt="Delivery" className="h-12" />
           <p className="text-xs text-gray-500 mt-1 text-center">Super Admin</p>
