@@ -102,7 +102,7 @@ export const GET_NOTIFICATION_LOGS = gql`
 `;
 
 export const RESEND_NOTIFICATION = gql`
-  mutation ResendNotification($id: String!) {
+  mutation ResendNotification($id: ID!) {
     resendNotification(id: $id)
   }
 `;
