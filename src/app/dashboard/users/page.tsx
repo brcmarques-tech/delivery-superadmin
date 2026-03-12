@@ -77,78 +77,134 @@ export default function UsersPage() {
         </select>
       </div>
 
-      <div className="overflow-x-auto">
-      <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-        <table className="w-full min-w-[700px]">
-          <thead>
-            <tr className="border-b border-gray-700">
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Nome</th>
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Email</th>
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Telefone</th>
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Tipo</th>
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Status</th>
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Lojas</th>
-              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Acoes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((user: any) => (
-              <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                <td className="p-3 sm:p-4 text-white font-medium">
-                  <span>{user.name}</span>
-                  {(user.role === "VENDOR" || user.role === "DELIVERER") && (
-                    <span
-                      className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        user.mpConnected
-                          ? "bg-emerald-500/20 text-emerald-400"
-                          : "bg-gray-600/30 text-gray-500"
-                      }`}
-                    >
-                      {user.mpConnected ? "MP \u2713" : "MP \u2717"}
-                    </span>
-                  )}
-                </td>
-                <td className="p-3 sm:p-4 text-gray-300">{user.email}</td>
-                <td className="p-3 sm:p-4 text-gray-300">{user.phone}</td>
-                <td className="p-3 sm:p-4">
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer ${roleColors[user.role] || "bg-gray-600 text-gray-300"}`}
-                  >
-                    {roles.map((r) => (
-                      <option key={r} value={r}>{roleLabels[r]}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className="p-3 sm:p-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.isActive ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                    {user.isActive ? "Ativo" : "Inativo"}
-                  </span>
-                </td>
-                <td className="p-3 sm:p-4 text-gray-300">
-                  {user.stores?.length > 0
-                    ? user.stores.map((s: any) => s.name).join(", ")
-                    : "-"
-                  }
-                </td>
-                <td className="p-3 sm:p-4">
-                  <button
-                    onClick={() => handleToggleActive(user.id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
-                      user.isActive
-                        ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
-                        : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+      {/* Mobile: Cards */}
+      <div className="md:hidden space-y-3">
+        {filtered.map((user: any) => (
+          <div key={user.id} className="bg-gray-800 rounded-2xl border border-gray-700 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-white font-semibold">{user.name}</h3>
+                {(user.role === "VENDOR" || user.role === "DELIVERER") && (
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      user.mpConnected
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-gray-600/30 text-gray-500"
                     }`}
                   >
-                    {user.isActive ? "Desativar" : "Ativar"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    {user.mpConnected ? "MP \u2713" : "MP \u2717"}
+                  </span>
+                )}
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.isActive ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                {user.isActive ? "Ativo" : "Inativo"}
+              </span>
+            </div>
+            <div className="space-y-1.5 text-sm mb-3">
+              <p className="text-gray-400 break-all">{user.email}</p>
+              <p className="text-gray-400">{user.phone}</p>
+              {user.stores?.length > 0 && (
+                <p className="text-gray-500">Lojas: {user.stores.map((s: any) => s.name).join(", ")}</p>
+              )}
+            </div>
+            <div className="flex items-center justify-between">
+              <select
+                value={user.role}
+                onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer ${roleColors[user.role] || "bg-gray-600 text-gray-300"}`}
+              >
+                {roles.map((r) => (
+                  <option key={r} value={r}>{roleLabels[r]}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => handleToggleActive(user.id)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
+                  user.isActive
+                    ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                    : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+                }`}
+              >
+                {user.isActive ? "Desativar" : "Ativar"}
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Desktop: Table */}
+      <div className="hidden md:block">
+        <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Nome</th>
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Email</th>
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Telefone</th>
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Tipo</th>
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Status</th>
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Lojas</th>
+                <th className="text-left p-4 text-sm text-gray-400 font-medium">Acoes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((user: any) => (
+                <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                  <td className="p-4 text-white font-medium">
+                    <span>{user.name}</span>
+                    {(user.role === "VENDOR" || user.role === "DELIVERER") && (
+                      <span
+                        className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          user.mpConnected
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-gray-600/30 text-gray-500"
+                        }`}
+                      >
+                        {user.mpConnected ? "MP \u2713" : "MP \u2717"}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4 text-gray-300">{user.email}</td>
+                  <td className="p-4 text-gray-300">{user.phone}</td>
+                  <td className="p-4">
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer ${roleColors[user.role] || "bg-gray-600 text-gray-300"}`}
+                    >
+                      {roles.map((r) => (
+                        <option key={r} value={r}>{roleLabels[r]}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.isActive ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                      {user.isActive ? "Ativo" : "Inativo"}
+                    </span>
+                  </td>
+                  <td className="p-4 text-gray-300">
+                    {user.stores?.length > 0
+                      ? user.stores.map((s: any) => s.name).join(", ")
+                      : "-"
+                    }
+                  </td>
+                  <td className="p-4">
+                    <button
+                      onClick={() => handleToggleActive(user.id)}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
+                        user.isActive
+                          ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                          : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+                      }`}
+                    >
+                      {user.isActive ? "Desativar" : "Ativar"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

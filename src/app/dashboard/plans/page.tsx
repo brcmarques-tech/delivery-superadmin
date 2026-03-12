@@ -98,8 +98,66 @@ export default function PlansPage() {
         className="w-full md:w-80 bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2 mb-6 focus:outline-none focus:border-purple-500"
       />
 
-      {/* Vendors table */}
-      <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden overflow-x-auto">
+      {/* Vendors mobile cards */}
+      <div className="md:hidden space-y-3">
+        {filtered.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">
+            Nenhum vendedor encontrado
+          </p>
+        ) : (
+          filtered.map((user: any) => (
+            <div
+              key={user.id}
+              className="bg-gray-800 rounded-2xl border border-gray-700 p-4 space-y-3"
+            >
+              {/* Top row: name + plan badge */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-white text-base leading-tight">
+                  {user.name}
+                </span>
+                <span
+                  className={`shrink-0 px-3 py-1 rounded-full text-sm font-semibold ${
+                    planColors[user.vendorPlan || "FREE"]
+                  }`}
+                >
+                  {planLabels[user.vendorPlan || "FREE"] || "Gratuito"}
+                </span>
+              </div>
+
+              {/* Email */}
+              <p className="text-gray-400 text-sm break-all">{user.email}</p>
+
+              {/* Shops + expiry */}
+              <div className="flex items-center gap-4 text-sm text-gray-300">
+                <span>
+                  <span className="text-gray-500">Lojas: </span>
+                  {user.stores?.length || 0}
+                </span>
+                <span>
+                  <span className="text-gray-500">Expira: </span>
+                  {user.planExpiresAt
+                    ? new Date(user.planExpiresAt).toLocaleDateString("pt-BR")
+                    : "-"}
+                </span>
+              </div>
+
+              {/* Plan change dropdown */}
+              <select
+                value={user.vendorPlan || "FREE"}
+                onChange={(e) => handlePlanChange(user.id, e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm border border-gray-600 focus:outline-none focus:border-purple-500 cursor-pointer"
+              >
+                <option value="FREE">Gratuito</option>
+                <option value="PRO">Pro</option>
+                <option value="PREMIUM">Premium</option>
+              </select>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Vendors table (desktop) */}
+      <div className="hidden md:block bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden overflow-x-auto">
         <table className="w-full min-w-[600px] text-left">
           <thead>
             <tr className="border-b border-gray-700">

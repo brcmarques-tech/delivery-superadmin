@@ -104,7 +104,50 @@ export default function PaymentsPage() {
         </select>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {filtered.map((p: any) => (
+          <div key={p.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            {/* Top row: date + status */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-400">
+                {new Date(p.createdAt).toLocaleDateString("pt-BR")}
+              </span>
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[p.status] || "bg-gray-600 text-gray-300"}`}>
+                {statusLabels[p.status] || p.status}
+              </span>
+            </div>
+
+            {/* User */}
+            <p className="text-white font-bold text-sm mb-0.5">{p.user?.name}</p>
+            <p className="text-gray-400 text-xs break-all mb-3">{p.user?.email}</p>
+
+            {/* Type + description */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                p.type === "PLAN_UPGRADE" ? "bg-purple-500/20 text-purple-400" : p.type === "DELIVERER_PAYOUT" ? "bg-cyan-500/20 text-cyan-400" : p.type === "VENDOR_PAYOUT" ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400"
+              }`}>
+                {typeLabels[p.type] || p.type}
+              </span>
+              {p.description && (
+                <span className="text-gray-300 text-xs truncate">{p.description}</span>
+              )}
+            </div>
+
+            {/* Amount */}
+            <p className={`text-base font-bold ${Number(p.amount) < 0 ? "text-red-400" : "text-emerald-400"}`}>
+              R$ {Number(p.amount).toFixed(2)}
+            </p>
+          </div>
+        ))}
+
+        {filtered.length === 0 && (
+          <p className="text-gray-500 text-center py-8">Nenhum pagamento encontrado</p>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-gray-400 border-b border-gray-700">
