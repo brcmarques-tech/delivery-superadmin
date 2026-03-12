@@ -66,7 +66,7 @@ export default function DeliveriesPage() {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-6">
         <input
           type="text"
           placeholder="Buscar por entregador, pedido, loja..."
@@ -90,8 +90,8 @@ export default function DeliveriesPage() {
         {filtered.map((d: any) => {
           const status = getStatus(d);
           return (
-            <div key={d.id} className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
-              <div className="flex items-center justify-between mb-3">
+            <div key={d.id} className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3">
                   <h3 className="text-white font-bold">#{d.order?.orderNumber}</h3>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
@@ -125,7 +125,7 @@ export default function DeliveriesPage() {
                 <p className="text-gray-300">{d.order?.deliveryAddress || "—"}</p>
               </div>
 
-              <div className="flex items-center gap-6 mt-3 text-xs text-gray-500">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1 mt-3 text-xs text-gray-500">
                 <span>Taxa: R$ {Number(d.order?.deliveryFee || 0).toFixed(2)}</span>
                 <span>Total pedido: R$ {Number(d.order?.total || 0).toFixed(2)}</span>
                 {d.pickedUpAt && <span>Coletado: {new Date(d.pickedUpAt).toLocaleString("pt-BR")}</span>}
@@ -135,7 +135,7 @@ export default function DeliveriesPage() {
               {/* Payout info for completed deliveries with app deliverers */}
               {d.deliveredAt && !d.order?.store?.hasOwnDelivery && (
                 <div className="mt-3 pt-3 border-t border-gray-700 space-y-2 text-xs">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="text-gray-500">Vendedor:</span>
                     <span className="text-white font-semibold">R$ {Number(d.vendorPayoutAmount || 0).toFixed(2)}</span>
                     {d.vendorPayoutStatus === "completed" && (
@@ -146,7 +146,7 @@ export default function DeliveriesPage() {
                     )}
                     {d.vendorPayoutMpId && <span className="text-gray-600">MP: {d.vendorPayoutMpId}</span>}
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="text-gray-500">Entregador:</span>
                     <span className="text-white font-semibold">R$ {Number(d.payoutAmount || 0).toFixed(2)}</span>
                     {d.payoutStatus === "completed" && (
@@ -163,7 +163,7 @@ export default function DeliveriesPage() {
                 </div>
               )}
               {d.deliveredAt && d.order?.store?.hasOwnDelivery && (
-                <div className="mt-3 pt-3 border-t border-gray-700 flex items-center gap-4 text-xs">
+                <div className="mt-3 pt-3 border-t border-gray-700 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                   <span className="px-2 py-0.5 rounded-full bg-gray-600/20 text-gray-400 font-semibold">Entrega propria</span>
                 </div>
               )}

@@ -99,16 +99,16 @@ export default function PlansPage() {
       />
 
       {/* Vendors table */}
-      <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-        <table className="w-full text-left">
+      <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[600px] text-left">
           <thead>
             <tr className="border-b border-gray-700">
-              <th className="px-6 py-4 text-sm text-gray-400">Nome</th>
-              <th className="px-6 py-4 text-sm text-gray-400">Email</th>
-              <th className="px-6 py-4 text-sm text-gray-400">Lojas</th>
-              <th className="px-6 py-4 text-sm text-gray-400">Plano Atual</th>
-              <th className="px-6 py-4 text-sm text-gray-400">Expira em</th>
-              <th className="px-6 py-4 text-sm text-gray-400">Alterar Plano</th>
+              <th className="px-3 sm:px-6 py-4 text-sm text-gray-400">Nome</th>
+              <th className="px-3 sm:px-6 py-4 text-sm text-gray-400">Email</th>
+              <th className="px-3 sm:px-6 py-4 text-sm text-gray-400">Lojas</th>
+              <th className="px-3 sm:px-6 py-4 text-sm text-gray-400">Plano Atual</th>
+              <th className="px-3 sm:px-6 py-4 text-sm text-gray-400">Expira em</th>
+              <th className="px-3 sm:px-6 py-4 text-sm text-gray-400">Alterar Plano</th>
             </tr>
           </thead>
           <tbody>
@@ -117,12 +117,12 @@ export default function PlansPage() {
                 key={user.id}
                 className="border-b border-gray-700/50 hover:bg-gray-700/30"
               >
-                <td className="px-6 py-4 text-white">{user.name}</td>
-                <td className="px-6 py-4 text-gray-300">{user.email}</td>
-                <td className="px-6 py-4 text-gray-300">
+                <td className="px-3 sm:px-6 py-4 text-white">{user.name}</td>
+                <td className="px-3 sm:px-6 py-4 text-gray-300">{user.email}</td>
+                <td className="px-3 sm:px-6 py-4 text-gray-300">
                   {user.stores?.length || 0}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-3 sm:px-6 py-4">
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       planColors[user.vendorPlan || "FREE"]
@@ -131,12 +131,12 @@ export default function PlansPage() {
                     {planLabels[user.vendorPlan || "FREE"] || "Gratuito"}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-gray-300 text-sm">
+                <td className="px-3 sm:px-6 py-4 text-gray-300 text-sm">
                   {user.planExpiresAt
                     ? new Date(user.planExpiresAt).toLocaleDateString("pt-BR")
                     : "-"}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-3 sm:px-6 py-4">
                   <select
                     value={user.vendorPlan || "FREE"}
                     onChange={(e) => handlePlanChange(user.id, e.target.value)}

@@ -89,7 +89,7 @@ export default function PromotionsPage() {
       {/* Config de preço por dia */}
       <div className="bg-gray-800 rounded-2xl border border-gray-700 p-5 mb-6">
         <h2 className="text-sm font-semibold text-gray-400 mb-3">Configuração de preço</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <label className="text-gray-300 text-sm">Preço por dia de anúncio:</label>
           <div className="flex items-center gap-2">
             <span className="text-gray-400">R$</span>
@@ -167,7 +167,7 @@ export default function PromotionsPage() {
             {pending.map((promo: any) => {
               const imgUrl = promo.product?.imageUrl || promo.imageUrl;
               return (
-                <div key={promo.id} className="bg-gray-800 rounded-2xl border border-yellow-600/40 p-4 flex items-center gap-4">
+                <div key={promo.id} className="bg-gray-800 rounded-2xl border border-yellow-600/40 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
                   {imgUrl ? (
                     <img src={imgUrl} alt={promo.title} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
                   ) : (
@@ -181,14 +181,14 @@ export default function PromotionsPage() {
                         <span className="text-green-400 font-semibold">R$ {Number(promo.promotionalPrice).toFixed(2)}</span>
                       </p>
                     )}
-                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
                       <span>{promo.store?.name}</span>
                       <span>{promo.store?.owner?.name}</span>
                       <span>{new Date(promo.startDate).toLocaleDateString("pt-BR")} - {new Date(promo.endDate).toLocaleDateString("pt-BR")}</span>
                       <span className="text-yellow-400">Anúncio: R$ {Number(promo.adCost).toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:flex-shrink-0">
                     <button
                       onClick={() => handleMarkPaid(promo.id)}
                       className="px-4 py-2 bg-emerald-600/20 text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-600/30 transition cursor-pointer"
@@ -215,7 +215,7 @@ export default function PromotionsPage() {
       </h2>
 
       {active.length === 0 && pending.length === 0 ? (
-        <div className="bg-gray-800 rounded-2xl p-12 border border-gray-700 text-center">
+        <div className="bg-gray-800 rounded-2xl p-6 sm:p-12 border border-gray-700 text-center">
           <p className="text-gray-400 text-lg">Nenhuma promoção criada ainda</p>
           <p className="text-gray-500 text-sm mt-2">Vendedores com plano Pro ou Premium podem criar promoções pelo painel</p>
         </div>
@@ -227,7 +227,7 @@ export default function PromotionsPage() {
             const imgUrl = promo.product?.imageUrl || promo.imageUrl;
 
             return (
-              <div key={promo.id} className={`bg-gray-800 rounded-2xl border p-4 flex items-center gap-4 ${isLive ? "border-green-600/40" : "border-gray-700"}`}>
+              <div key={promo.id} className={`bg-gray-800 rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center gap-4 ${isLive ? "border-green-600/40" : "border-gray-700"}`}>
                 {imgUrl ? (
                   <img src={imgUrl} alt={promo.title} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
                 ) : (
@@ -246,7 +246,7 @@ export default function PromotionsPage() {
                       <span className="text-green-400 font-semibold">R$ {Number(promo.promotionalPrice).toFixed(2)}</span>
                     </p>
                   )}
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
                     <span>{promo.store?.name}</span>
                     <span>{promo.store?.owner?.name}</span>
                     <span>{new Date(promo.startDate).toLocaleDateString("pt-BR")} - {new Date(promo.endDate).toLocaleDateString("pt-BR")}</span>
@@ -255,7 +255,7 @@ export default function PromotionsPage() {
                 </div>
                 <button
                   onClick={() => handleToggleActive(promo.id)}
-                  className={`px-3 py-2 rounded-xl text-sm font-semibold transition cursor-pointer flex-shrink-0 ${
+                  className={`px-3 py-2 rounded-xl text-sm font-semibold transition cursor-pointer w-full sm:w-auto sm:flex-shrink-0 ${
                     promo.isActive
                       ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
                       : "bg-green-600/20 text-green-400 hover:bg-green-600/30"

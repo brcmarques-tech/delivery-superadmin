@@ -79,12 +79,12 @@ export default function PaymentsPage() {
           placeholder="Buscar por nome, email..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="flex-1 min-w-[200px] max-w-md px-4 py-3 bg-gray-800 rounded-xl text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="flex-1 min-w-0 w-full sm:min-w-[200px] sm:w-auto max-w-md px-4 py-3 bg-gray-800 rounded-xl text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-4 py-3 bg-gray-800 rounded-xl text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="min-w-0 w-full sm:min-w-[200px] sm:w-auto px-4 py-3 bg-gray-800 rounded-xl text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
           <option value="ALL">Todos tipos</option>
           <option value="PLAN_UPGRADE">Planos</option>
@@ -95,7 +95,7 @@ export default function PaymentsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-3 bg-gray-800 rounded-xl text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="min-w-0 w-full sm:min-w-[200px] sm:w-auto px-4 py-3 bg-gray-800 rounded-xl text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
           <option value="ALL">Todos status</option>
           <option value="pending">Pendente</option>
@@ -108,36 +108,36 @@ export default function PaymentsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-gray-400 border-b border-gray-700">
-              <th className="text-left py-3 px-4">Data</th>
-              <th className="text-left py-3 px-4">Usuario</th>
-              <th className="text-left py-3 px-4">Tipo</th>
-              <th className="text-left py-3 px-4">Descricao</th>
-              <th className="text-right py-3 px-4">Valor</th>
-              <th className="text-center py-3 px-4">Status</th>
+              <th className="text-left py-3 px-3 sm:px-4">Data</th>
+              <th className="text-left py-3 px-3 sm:px-4">Usuario</th>
+              <th className="text-left py-3 px-3 sm:px-4">Tipo</th>
+              <th className="text-left py-3 px-3 sm:px-4">Descricao</th>
+              <th className="text-right py-3 px-3 sm:px-4">Valor</th>
+              <th className="text-center py-3 px-3 sm:px-4">Status</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((p: any) => (
               <tr key={p.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                <td className="py-3 px-4 text-gray-400">
+                <td className="py-3 px-3 sm:px-4 text-gray-400 whitespace-nowrap">
                   {new Date(p.createdAt).toLocaleDateString("pt-BR")}
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-3 px-3 sm:px-4">
                   <p className="text-white">{p.user?.name}</p>
                   <p className="text-gray-500 text-xs">{p.user?.email}</p>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-3 px-3 sm:px-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                     p.type === "PLAN_UPGRADE" ? "bg-purple-500/20 text-purple-400" : p.type === "DELIVERER_PAYOUT" ? "bg-cyan-500/20 text-cyan-400" : p.type === "VENDOR_PAYOUT" ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400"
                   }`}>
                     {typeLabels[p.type] || p.type}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-gray-300 max-w-xs truncate">{p.description}</td>
-                <td className="py-3 px-4 text-right text-white font-semibold">
+                <td className="py-3 px-3 sm:px-4 text-gray-300 max-w-[120px] sm:max-w-xs truncate">{p.description}</td>
+                <td className="py-3 px-3 sm:px-4 text-right text-white font-semibold">
                   R$ {Number(p.amount).toFixed(2)}
                 </td>
-                <td className="py-3 px-4 text-center">
+                <td className="py-3 px-3 sm:px-4 text-center">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[p.status] || "bg-gray-600 text-gray-300"}`}>
                     {statusLabels[p.status] || p.status}
                   </span>

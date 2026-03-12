@@ -86,8 +86,8 @@ export default function ApprovalsPage() {
 
       <div className="space-y-4">
         {pending.map((user) => (
-          <div key={user.id} className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-            <div className="flex items-start justify-between">
+          <div key={user.id} className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-lg font-semibold text-white">{user.name}</h3>
@@ -103,7 +103,7 @@ export default function ApprovalsPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-gray-400">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-gray-400">
                   <p>Email: <span className="text-gray-300">{user.email}</span></p>
                   <p>Telefone: <span className="text-gray-300">{user.phone}</span></p>
                   <p>Cargo atual: <span className="text-gray-300">{roleLabels[user.role] || user.role}</span></p>
@@ -113,7 +113,7 @@ export default function ApprovalsPage() {
                 {user.pendingRole === "DELIVERER" && (
                   <div className="mt-3 p-3 bg-gray-700/50 rounded-xl">
                     <p className="text-sm font-medium text-gray-300 mb-2">Dados do entregador:</p>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-gray-400">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-gray-400">
                       <p>CPF: <span className="text-gray-300">{user.cpf || "-"}</span></p>
                       <p>Veiculo: <span className="text-gray-300">{user.vehicleType || "-"}</span></p>
                       <p>Placa: <span className="text-gray-300">{user.vehiclePlate || "-"}</span></p>
@@ -124,7 +124,7 @@ export default function ApprovalsPage() {
                         <img
                           src={user.identityPhotoUrl}
                           alt="Identidade"
-                          className="w-48 h-48 object-cover rounded-lg border border-gray-600"
+                          className="w-32 h-32 sm:w-48 sm:h-48 object-cover rounded-lg border border-gray-600"
                         />
                       </div>
                     )}
@@ -132,7 +132,7 @@ export default function ApprovalsPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-2 ml-6">
+              <div className="flex flex-wrap gap-2 ml-0 sm:ml-6">
                 <button
                   onClick={() => handleApprove(user.id)}
                   disabled={processing === user.id}
@@ -151,7 +151,7 @@ export default function ApprovalsPage() {
             </div>
 
             {rejectingId === user.id && (
-              <div className="mt-4 flex gap-3">
+              <div className="mt-4 flex flex-wrap gap-3">
                 <input
                   type="text"
                   placeholder="Motivo da rejeicao..."

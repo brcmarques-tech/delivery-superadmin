@@ -44,7 +44,7 @@ export default function StoresPage() {
         {filtered.map((store: any) => (
           <div
             key={store.id}
-            className={`bg-gray-800 rounded-2xl p-6 border ${
+            className={`bg-gray-800 rounded-2xl p-4 sm:p-6 border ${
               store.isActive ? "border-gray-700" : "border-red-800/50 opacity-60"
             }`}
           >
@@ -68,13 +68,13 @@ export default function StoresPage() {
             )}
 
             <div className="space-y-2 text-sm mb-4">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Dono</span>
-                <span className="text-gray-300">{store.owner?.name}</span>
+              <div className="flex justify-between gap-2">
+                <span className="text-gray-500 shrink-0">Dono</span>
+                <span className="text-gray-300 text-right">{store.owner?.name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Email</span>
-                <span className="text-gray-300">{store.owner?.email}</span>
+              <div className="flex justify-between gap-2 flex-wrap">
+                <span className="text-gray-500 shrink-0">Email</span>
+                <span className="text-gray-300 text-right break-all">{store.owner?.email}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Cidade</span>
@@ -83,7 +83,7 @@ export default function StoresPage() {
               {store.street && (
                 <div className="flex justify-between">
                   <span className="text-gray-500">Endereco</span>
-                  <span className="text-gray-300 text-right max-w-[200px]">{store.street}, {store.number} - {store.neighborhood}</span>
+                  <span className="text-gray-300 text-right max-w-[150px] sm:max-w-[200px]">{store.street}, {store.number} - {store.neighborhood}</span>
                 </div>
               )}
               <div className="flex justify-between">
@@ -127,15 +127,15 @@ export default function StoresPage() {
                   )}
                 </>
               ) : (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Tempo estimado</span>
-                  <span className="text-gray-400 text-xs">Calculado por distancia</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-gray-500 shrink-0">Tempo estimado</span>
+                  <span className="text-gray-400 text-xs text-right">Calculado por distancia</span>
                 </div>
               )}
               {store.deliveryStartTime && store.deliveryEndTime && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Horario entregas</span>
-                  <span className="text-gray-300">{store.deliveryStartTime} - {store.deliveryEndTime}</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-gray-500 shrink-0">Horario entregas</span>
+                  <span className="text-gray-300 text-right">{store.deliveryStartTime} - {store.deliveryEndTime}</span>
                 </div>
               )}
             </div>

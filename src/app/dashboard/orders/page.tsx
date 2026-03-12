@@ -43,7 +43,7 @@ export default function OrdersPage() {
         Todos os Pedidos ({orders.length})
       </h1>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
           placeholder="Buscar por numero, cliente ou loja..."
@@ -73,10 +73,10 @@ export default function OrdersPage() {
           return (
             <div
               key={order.id}
-              className="bg-gray-800 rounded-2xl p-6 border border-gray-700"
+              className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                <div className="flex items-center flex-wrap gap-2">
                   <span className="font-bold text-white text-lg">
                     #{order.orderNumber}
                   </span>
@@ -99,7 +99,7 @@ export default function OrdersPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Cliente</p>
                   <p className="text-white">{order.customer?.name}</p>
@@ -128,8 +128,8 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between border-t border-gray-700 pt-3">
-                <div className="flex gap-6 text-sm">
+              <div className="flex items-center justify-between flex-wrap gap-2 border-t border-gray-700 pt-3">
+                <div className="flex flex-wrap gap-4 text-sm">
                   <span className="text-gray-400">
                     Subtotal: R$ {Number(order.subtotal).toFixed(2)}
                   </span>

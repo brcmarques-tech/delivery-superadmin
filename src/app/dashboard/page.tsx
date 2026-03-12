@@ -47,28 +47,28 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Dashboard</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <p className="text-sm text-gray-400">Total Usuarios</p>
           <p className="text-3xl font-bold text-white mt-1">{stats.totalUsers}</p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <p className="text-sm text-gray-400">Total Lojas</p>
           <p className="text-3xl font-bold text-white mt-1">{stats.totalStores}</p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <p className="text-sm text-gray-400">Total Pedidos</p>
           <p className="text-3xl font-bold text-white mt-1">{stats.totalOrders}</p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <p className="text-sm text-gray-400">Receita Total</p>
           <p className="text-3xl font-bold text-emerald-400 mt-1">
             R$ {Number(stats.totalRevenue).toFixed(2)}
           </p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-purple-600">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-purple-600">
           <p className="text-sm text-gray-400">Receita Plataforma</p>
           <p className="text-3xl font-bold text-purple-400 mt-1">
             R$ {Number(stats.platformRevenue).toFixed(2)}
@@ -77,27 +77,27 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-2xl p-6 border border-cyan-800">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-cyan-800">
           <p className="text-sm text-gray-400">Entregadores Online</p>
           <p className="text-3xl font-bold text-cyan-400 mt-1">{stats.onlineDeliverers}</p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <p className="text-sm text-gray-400">Total Entregas</p>
           <p className="text-3xl font-bold text-white mt-1">{stats.totalDeliveries}</p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-yellow-800">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-yellow-800">
           <p className="text-sm text-gray-400">Entregas Ativas</p>
           <p className="text-3xl font-bold text-yellow-400 mt-1">{stats.activeDeliveries}</p>
         </div>
-        <div className="bg-gray-800 rounded-2xl p-6 border border-emerald-800">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-emerald-800">
           <p className="text-sm text-gray-400">Entregas Concluidas</p>
           <p className="text-3xl font-bold text-emerald-400 mt-1">{stats.completedDeliveries}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <h2 className="text-lg font-bold text-white mb-4">Usuarios por Tipo</h2>
           <div className="space-y-3">
             {stats.usersByRole.map((r: { role: string; count: number }) => (
@@ -111,7 +111,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 border border-gray-700">
           <h2 className="text-lg font-bold text-white mb-4">Pedidos por Status</h2>
           <div className="space-y-3">
             {stats.ordersByStatus.map((s: { status: string; count: number }) => (

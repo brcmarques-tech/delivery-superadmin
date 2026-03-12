@@ -70,34 +70,34 @@ export default function NotificationsPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
           <h1 className="text-2xl font-bold text-white">Notificacoes Enviadas</h1>
           {logs.length > 0 && (
             <button
               onClick={handleClearAll}
-              className="text-xs px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
+              className="text-xs px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer self-start sm:self-auto"
             >
               Limpar Tudo
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700">
             <p className="text-sm text-gray-400">Total de emails</p>
             <p className="text-2xl font-bold text-blue-400 mt-1">{logs.length}</p>
           </div>
-          <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
+          <div className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700">
             <p className="text-sm text-gray-400">Enviados com sucesso</p>
             <p className="text-2xl font-bold text-green-400 mt-1">{totalSent}</p>
           </div>
-          <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
+          <div className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700">
             <p className="text-sm text-gray-400">Falhas</p>
             <p className="text-2xl font-bold text-red-400 mt-1">{totalFailed}</p>
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           {(["all", "success", "failed"] as const).map((f) => (
             <button
               key={f}
@@ -130,19 +130,19 @@ export default function NotificationsPage() {
         {filteredLogs.map((log) => (
           <div
             key={log.id}
-            className={`bg-gray-800 rounded-xl p-4 border ${
+            className={`bg-gray-800 rounded-xl p-3 sm:p-4 border ${
               log.success ? "border-gray-700" : "border-red-700/50"
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <span className="text-xs px-2 py-1 rounded-full font-medium bg-blue-500/20 text-blue-400">
                   Email
                 </span>
                 <span className="text-white font-medium">{log.userName}</span>
-                <span className="text-gray-500 text-sm">{log.to}</span>
+                <span className="text-gray-500 text-sm break-all">{log.to}</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                   log.success ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
                 }`}>
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
               <span className="text-gray-300 font-medium">{log.subject}</span> — {log.message}
             </p>
             {log.error && (
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-1">
                 <p className="text-xs text-red-400">Erro: {log.error}</p>
                 <button
                   onClick={() => handleResend(log.id)}

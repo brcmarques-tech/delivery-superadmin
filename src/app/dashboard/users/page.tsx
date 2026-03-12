@@ -57,7 +57,7 @@ export default function UsersPage() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">Usuarios ({users.length})</h1>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
           placeholder="Buscar por nome, email ou telefone..."
@@ -77,23 +77,24 @@ export default function UsersPage() {
         </select>
       </div>
 
+      <div className="overflow-x-auto">
       <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-        <table className="w-full">
+        <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-700">
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Nome</th>
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Email</th>
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Telefone</th>
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Tipo</th>
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Status</th>
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Lojas</th>
-              <th className="text-left p-4 text-sm text-gray-400 font-medium">Acoes</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Nome</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Email</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Telefone</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Tipo</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Status</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Lojas</th>
+              <th className="text-left p-3 sm:p-4 text-sm text-gray-400 font-medium">Acoes</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((user: any) => (
               <tr key={user.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                <td className="p-4 text-white font-medium">
+                <td className="p-3 sm:p-4 text-white font-medium">
                   <span>{user.name}</span>
                   {(user.role === "VENDOR" || user.role === "DELIVERER") && (
                     <span
@@ -107,9 +108,9 @@ export default function UsersPage() {
                     </span>
                   )}
                 </td>
-                <td className="p-4 text-gray-300">{user.email}</td>
-                <td className="p-4 text-gray-300">{user.phone}</td>
-                <td className="p-4">
+                <td className="p-3 sm:p-4 text-gray-300">{user.email}</td>
+                <td className="p-3 sm:p-4 text-gray-300">{user.phone}</td>
+                <td className="p-3 sm:p-4">
                   <select
                     value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
@@ -120,18 +121,18 @@ export default function UsersPage() {
                     ))}
                   </select>
                 </td>
-                <td className="p-4">
+                <td className="p-3 sm:p-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.isActive ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
                     {user.isActive ? "Ativo" : "Inativo"}
                   </span>
                 </td>
-                <td className="p-4 text-gray-300">
+                <td className="p-3 sm:p-4 text-gray-300">
                   {user.stores?.length > 0
                     ? user.stores.map((s: any) => s.name).join(", ")
                     : "-"
                   }
                 </td>
-                <td className="p-4">
+                <td className="p-3 sm:p-4">
                   <button
                     onClick={() => handleToggleActive(user.id)}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
@@ -147,6 +148,7 @@ export default function UsersPage() {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );
