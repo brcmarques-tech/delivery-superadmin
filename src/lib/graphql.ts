@@ -144,8 +144,51 @@ export const UPDATE_VENDOR_PLAN = gql`
 export const GET_AVAILABLE_PLANS = gql`
   query AvailablePlans {
     availablePlans {
-      plan maxStores canPromote monthlyPrice
+      plan maxStores monthlyPrice quarterlyPrice semiannualPrice annualPrice
+      commissionPercent freePromosPerWeek maxProductsPerStore maxEmailsPerMonth
+      listingPriority highlightDaysPerMonth canUseCoupons hasAnalytics
+      supportLevel isContactSales
     }
+  }
+`;
+
+export const UPDATE_PLAN_CONFIG = gql`
+  mutation UpdatePlanConfig(
+    $plan: VendorPlan!
+    $maxStores: Int!
+    $commissionPercent: Float!
+    $monthlyPrice: Float!
+    $quarterlyPrice: Float!
+    $semiannualPrice: Float!
+    $annualPrice: Float!
+    $freePromosPerWeek: Int!
+    $maxProductsPerStore: Int!
+    $maxEmailsPerMonth: Int!
+    $listingPriority: Int!
+    $highlightDaysPerMonth: Int!
+    $canUseCoupons: Boolean!
+    $hasAnalytics: Boolean!
+    $supportLevel: String!
+    $isContactSales: Boolean!
+  ) {
+    updatePlanConfig(
+      plan: $plan
+      maxStores: $maxStores
+      commissionPercent: $commissionPercent
+      monthlyPrice: $monthlyPrice
+      quarterlyPrice: $quarterlyPrice
+      semiannualPrice: $semiannualPrice
+      annualPrice: $annualPrice
+      freePromosPerWeek: $freePromosPerWeek
+      maxProductsPerStore: $maxProductsPerStore
+      maxEmailsPerMonth: $maxEmailsPerMonth
+      listingPriority: $listingPriority
+      highlightDaysPerMonth: $highlightDaysPerMonth
+      canUseCoupons: $canUseCoupons
+      hasAnalytics: $hasAnalytics
+      supportLevel: $supportLevel
+      isContactSales: $isContactSales
+    )
   }
 `;
 
@@ -200,6 +243,50 @@ export const SET_DELIVERY_PRICE_PER_KM = gql`
 export const SET_DELIVERY_BASE_PRICE = gql`
   mutation SetDeliveryBasePrice($price: Float!) {
     setDeliveryBasePrice(price: $price) { id key value }
+  }
+`;
+
+// ─── Coupons ───
+
+export const GET_ALL_COUPONS = gql`
+  query AllCoupons {
+    allCoupons {
+      id code discountType discountValue minimumOrder maxDiscount
+      maxUses usesCount isActive expiresAt createdAt
+      store { id name owner { id name } }
+    }
+  }
+`;
+
+export const ADMIN_TOGGLE_COUPON = gql`
+  mutation AdminToggleCoupon($id: String!) {
+    adminToggleCoupon(id: $id) { id isActive }
+  }
+`;
+
+export const ADMIN_DELETE_COUPON = gql`
+  mutation AdminDeleteCoupon($id: String!) {
+    adminDeleteCoupon(id: $id)
+  }
+`;
+
+// ─── Contracts ───
+
+export const GET_CONTRACT_CONTENT = gql`
+  query ContractContent($type: String!) {
+    contractContent(type: $type)
+  }
+`;
+
+export const GET_CONTRACT_UPDATED_AT = gql`
+  query ContractUpdatedAt($type: String!) {
+    contractUpdatedAt(type: $type)
+  }
+`;
+
+export const UPDATE_CONTRACT_CONTENT = gql`
+  mutation UpdateContractContent($type: String!, $content: String!) {
+    updateContractContent(type: $type, content: $content)
   }
 `;
 
