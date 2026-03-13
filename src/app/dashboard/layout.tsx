@@ -13,6 +13,7 @@ const navItems = [
   { href: "/dashboard/deliveries", label: "Entregas" },
   { href: "/dashboard/payments", label: "Pagamentos" },
   { href: "/dashboard/plans", label: "Planos" },
+  { href: "/dashboard/badges", label: "Selos" },
   { href: "/dashboard/promotions", label: "Promocoes" },
   { href: "/dashboard/coupons", label: "Cupons" },
   { href: "/dashboard/contracts", label: "Contratos" },

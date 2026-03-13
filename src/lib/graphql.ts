@@ -59,7 +59,8 @@ export const GET_ALL_STORES = gql`
       hasOwnDelivery freeDelivery deliveryFee estimatedDeliveryMinutes
       deliveryStartTime deliveryEndTime freeDeliveryAbove minimumOrder
       street number neighborhood zipCode createdAt
-      owner { id name email }
+      verificationLevel verificationScore totalSales totalProducts
+      owner { id name email vendorPlan }
       products { id }
       categories { id }
     }
@@ -69,6 +70,14 @@ export const GET_ALL_STORES = gql`
 export const TOGGLE_STORE_ACTIVE = gql`
   mutation ToggleStoreActive($id: String!) {
     toggleStoreActive(id: $id) { id isActive }
+  }
+`;
+
+export const SET_STORE_VERIFICATION = gql`
+  mutation SetStoreVerification($storeId: String!, $level: VerificationLevel!, $score: Float) {
+    setStoreVerification(storeId: $storeId, level: $level, score: $score) {
+      id verificationLevel verificationScore
+    }
   }
 `;
 
@@ -299,6 +308,32 @@ export const GET_ALL_DELIVERIES = gql`
       deliverer { id name phone }
       order { id orderNumber status total deliveryFee deliveryAddress store { id name hasOwnDelivery } customer { id name phone } }
     }
+  }
+`;
+
+// ─── Badge Config ───
+
+export const GET_BADGE_CONFIG = gql`
+  query BadgeConfig {
+    badgeConfig
+  }
+`;
+
+export const UPDATE_BADGE_THRESHOLDS = gql`
+  mutation UpdateBadgeThresholds($thresholds: String!) {
+    updateBadgeThresholds(thresholds: $thresholds)
+  }
+`;
+
+export const UPDATE_BADGE_POINTS = gql`
+  mutation UpdateBadgePoints($points: String!) {
+    updateBadgePoints(points: $points)
+  }
+`;
+
+export const UPDATE_BADGE_REWARDS = gql`
+  mutation UpdateBadgeRewards($level: String!, $rewards: String!) {
+    updateBadgeRewards(level: $level, rewards: $rewards)
   }
 `;
 

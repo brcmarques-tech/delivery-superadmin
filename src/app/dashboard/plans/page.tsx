@@ -178,267 +178,218 @@ export default function PlansPage() {
         Planos de Vendedores
       </h1>
 
+      {/* Edit modal */}
+      {editingPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEditingPlan(null)}>
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Editar — {planLabels[editingPlan]}</h3>
+              <button onClick={() => setEditingPlan(null)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition cursor-pointer">
+                &#10005;
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-400">Preco mensal (R$) — altera os outros automaticamente</label>
+                <input type="number" step="0.01" value={editForm.monthlyPrice} onChange={(e) => autoCalcPrices(parseFloat(e.target.value) || 0)} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-gray-400">Desc. Tri (%)</label>
+                  <input type="number" min="0" max="99" value={editForm.quarterlyDiscount} onChange={(e) => autoCalcPrices(editForm.monthlyPrice, parseFloat(e.target.value) || 0, undefined, undefined)} className="w-full mt-1 px-2 py-1.5 bg-gray-700 text-white rounded-lg border border-gray-600 text-xs focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Desc. Sem (%)</label>
+                  <input type="number" min="0" max="99" value={editForm.semiannualDiscount} onChange={(e) => autoCalcPrices(editForm.monthlyPrice, undefined, parseFloat(e.target.value) || 0, undefined)} className="w-full mt-1 px-2 py-1.5 bg-gray-700 text-white rounded-lg border border-gray-600 text-xs focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Desc. Anual (%)</label>
+                  <input type="number" min="0" max="99" value={editForm.annualDiscount} onChange={(e) => autoCalcPrices(editForm.monthlyPrice, undefined, undefined, parseFloat(e.target.value) || 0)} className="w-full mt-1 px-2 py-1.5 bg-gray-700 text-white rounded-lg border border-gray-600 text-xs focus:outline-none focus:border-purple-500" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-gray-400">Tri (R$)</label>
+                  <div className="mt-1 px-2 py-1.5 bg-gray-900 text-gray-300 rounded-lg border border-gray-700 text-xs">{editForm.quarterlyPrice.toFixed(2)}</div>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Sem (R$)</label>
+                  <div className="mt-1 px-2 py-1.5 bg-gray-900 text-gray-300 rounded-lg border border-gray-700 text-xs">{editForm.semiannualPrice.toFixed(2)}</div>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Anual (R$)</label>
+                  <div className="mt-1 px-2 py-1.5 bg-gray-900 text-gray-300 rounded-lg border border-gray-700 text-xs">{editForm.annualPrice.toFixed(2)}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-400">Max lojas</label>
+                  <input type="number" value={editForm.maxStores} onChange={(e) => setEditForm({ ...editForm, maxStores: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Comissao (%)</label>
+                  <input type="number" step="0.1" min="0" max="100" value={editForm.commissionPercent} onChange={(e) => setEditForm({ ...editForm, commissionPercent: parseFloat(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Promos gratis/semana</label>
+                  <input type="number" min="0" value={editForm.freePromosPerWeek} onChange={(e) => setEditForm({ ...editForm, freePromosPerWeek: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Max produtos/loja (0=ilim.)</label>
+                  <input type="number" min="0" value={editForm.maxProductsPerStore} onChange={(e) => setEditForm({ ...editForm, maxProductsPerStore: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Max emails/mes (0=ilim.)</label>
+                  <input type="number" min="0" value={editForm.maxEmailsPerMonth} onChange={(e) => setEditForm({ ...editForm, maxEmailsPerMonth: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Prioridade listagem (0-3)</label>
+                  <input type="number" min="0" max="3" value={editForm.listingPriority} onChange={(e) => setEditForm({ ...editForm, listingPriority: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Dias destaque/mes (0-30)</label>
+                  <input type="number" min="0" max="30" value={editForm.highlightDaysPerMonth} onChange={(e) => setEditForm({ ...editForm, highlightDaysPerMonth: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400">Nivel de suporte</label>
+                  <select value={editForm.supportLevel} onChange={(e) => setEditForm({ ...editForm, supportLevel: e.target.value })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500 cursor-pointer">
+                    <option value="normal">Normal</option>
+                    <option value="priority">Prioritario</option>
+                    <option value="dedicated">Dedicado</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-4 pt-1">
+                <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                  <input type="checkbox" checked={editForm.canUseCoupons} onChange={(e) => setEditForm({ ...editForm, canUseCoupons: e.target.checked })} className="w-4 h-4 accent-purple-500" />
+                  Cupons
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                  <input type="checkbox" checked={editForm.hasAnalytics} onChange={(e) => setEditForm({ ...editForm, hasAnalytics: e.target.checked })} className="w-4 h-4 accent-purple-500" />
+                  Analytics
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                  <input type="checkbox" checked={editForm.isContactSales} onChange={(e) => setEditForm({ ...editForm, isContactSales: e.target.checked })} className="w-4 h-4 accent-purple-500" />
+                  Sob consulta
+                </label>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button onClick={saveEdit} disabled={saving} className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50">
+                  {saving ? "Salvando..." : "Salvar"}
+                </button>
+                <button onClick={() => setEditingPlan(null)} className="px-4 py-2.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 transition cursor-pointer">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Plan info cards */}
       <div className="relative mb-8">
-        {/* Left arrow */}
         <button
-          onClick={() => scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+          onClick={() => scrollRef.current?.scrollBy({ left: -300, behavior: "smooth" })}
           className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-gray-700 border border-gray-600 rounded-full shadow-lg flex items-center justify-center text-gray-300 hover:bg-purple-600 hover:border-purple-500 transition cursor-pointer hidden md:flex"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
             <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
           </svg>
         </button>
-
-        {/* Right arrow */}
         <button
-          onClick={() => scrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+          onClick={() => scrollRef.current?.scrollBy({ left: 300, behavior: "smooth" })}
           className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-gray-700 border border-gray-600 rounded-full shadow-lg flex items-center justify-center text-gray-300 hover:bg-purple-600 hover:border-purple-500 transition cursor-pointer hidden md:flex"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
             <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
           </svg>
         </button>
-
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth pb-4 snap-x snap-mandatory md:px-4"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+          className="flex gap-4 overflow-x-auto scroll-smooth pb-4 md:px-4"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {plans.map((p: any) => (
-            <div
-              key={p.plan}
-              className={`rounded-2xl p-6 border relative min-w-[300px] w-[300px] shrink-0 snap-center ${planBorders[p.plan] || "border-gray-700 bg-gray-800"}`}
+        {plans.map((p: any) => (
+          <div
+            key={p.plan}
+            className={`rounded-2xl p-5 border relative min-w-[250px] w-[250px] shrink-0 ${planBorders[p.plan] || "border-gray-700 bg-gray-800"}`}
+          >
+            <button
+              onClick={() => startEdit(p)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-700/50 text-gray-400 hover:text-white hover:bg-gray-600/50 transition cursor-pointer"
+              title="Editar plano"
             >
-              {editingPlan === p.plan ? (
-                /* Edit mode */
-                <div className="space-y-3 max-h-[80vh] overflow-y-auto pr-1">
-                  <h3 className="text-lg font-bold text-white">{planLabels[p.plan]}</h3>
-
-                  {/* Prices */}
-                  <div>
-                    <label className="text-xs text-gray-400">Preco mensal (R$) — altera os outros automaticamente</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editForm.monthlyPrice}
-                      onChange={(e) => autoCalcPrices(parseFloat(e.target.value) || 0)}
-                      className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500"
-                    />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+              </svg>
+            </button>
+            <h3 className="text-lg font-bold text-white">
+              {planLabels[p.plan]}
+            </h3>
+            {p.isContactSales ? (
+              <>
+                <p className="text-2xl font-bold text-white mt-2">Sob consulta</p>
+                <p className="mt-4 text-sm text-gray-400">Plano configuravel — o vendedor entra em contato para negociar</p>
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-bold text-white mt-2">
+                  {Number(p.monthlyPrice) === 0
+                    ? "Gratis"
+                    : `R$ ${Number(p.monthlyPrice).toFixed(2)}/mes`}
+                </p>
+                {Number(p.monthlyPrice) > 0 && (
+                  <div className="text-xs text-gray-400 mt-1 space-y-0.5">
+                    <p>Tri: R$ {Number(p.quarterlyPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.quarterlyPrice), 3)}%)</span></p>
+                    <p>Sem: R$ {Number(p.semiannualPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.semiannualPrice), 6)}%)</span></p>
+                    <p>Anual: R$ {Number(p.annualPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.annualPrice), 12)}%)</span></p>
                   </div>
-                  {/* Discount percentages */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-400">Desc. Tri (%)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="99"
-                        value={editForm.quarterlyDiscount}
-                        onChange={(e) => autoCalcPrices(editForm.monthlyPrice, parseFloat(e.target.value) || 0, undefined, undefined)}
-                        className="w-full mt-1 px-2 py-1.5 bg-gray-700 text-white rounded-lg border border-gray-600 text-xs focus:outline-none focus:border-purple-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400">Desc. Sem (%)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="99"
-                        value={editForm.semiannualDiscount}
-                        onChange={(e) => autoCalcPrices(editForm.monthlyPrice, undefined, parseFloat(e.target.value) || 0, undefined)}
-                        className="w-full mt-1 px-2 py-1.5 bg-gray-700 text-white rounded-lg border border-gray-600 text-xs focus:outline-none focus:border-purple-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400">Desc. Anual (%)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="99"
-                        value={editForm.annualDiscount}
-                        onChange={(e) => autoCalcPrices(editForm.monthlyPrice, undefined, undefined, parseFloat(e.target.value) || 0)}
-                        className="w-full mt-1 px-2 py-1.5 bg-gray-700 text-white rounded-lg border border-gray-600 text-xs focus:outline-none focus:border-purple-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Calculated prices (read-only) */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="text-xs text-gray-400">Tri (R$)</label>
-                      <div className="mt-1 px-2 py-1.5 bg-gray-800 text-gray-300 rounded-lg border border-gray-700 text-xs">
-                        {editForm.quarterlyPrice.toFixed(2)}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400">Sem (R$)</label>
-                      <div className="mt-1 px-2 py-1.5 bg-gray-800 text-gray-300 rounded-lg border border-gray-700 text-xs">
-                        {editForm.semiannualPrice.toFixed(2)}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400">Anual (R$)</label>
-                      <div className="mt-1 px-2 py-1.5 bg-gray-800 text-gray-300 rounded-lg border border-gray-700 text-xs">
-                        {editForm.annualPrice.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs text-gray-400">Max lojas</label>
-                    <input type="number" value={editForm.maxStores} onChange={(e) => setEditForm({ ...editForm, maxStores: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">Comissao por pedido (%)</label>
-                    <input type="number" step="0.1" min="0" max="100" value={editForm.commissionPercent} onChange={(e) => setEditForm({ ...editForm, commissionPercent: parseFloat(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">Promos gratis/semana</label>
-                    <input type="number" min="0" value={editForm.freePromosPerWeek} onChange={(e) => setEditForm({ ...editForm, freePromosPerWeek: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">Max produtos/loja (0=ilimitado)</label>
-                    <input type="number" min="0" value={editForm.maxProductsPerStore} onChange={(e) => setEditForm({ ...editForm, maxProductsPerStore: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">Max emails/mes (0=ilimitado)</label>
-                    <input type="number" min="0" value={editForm.maxEmailsPerMonth} onChange={(e) => setEditForm({ ...editForm, maxEmailsPerMonth: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">Prioridade de listagem (0-3)</label>
-                    <input type="number" min="0" max="3" value={editForm.listingPriority} onChange={(e) => setEditForm({ ...editForm, listingPriority: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">Dias de destaque/mes (0-30)</label>
-                    <input type="number" min="0" max="30" value={editForm.highlightDaysPerMonth} onChange={(e) => setEditForm({ ...editForm, highlightDaysPerMonth: parseInt(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />
-                  </div>
-
-                  {/* Support level select */}
-                  <div>
-                    <label className="text-xs text-gray-400">Nivel de suporte</label>
-                    <select value={editForm.supportLevel} onChange={(e) => setEditForm({ ...editForm, supportLevel: e.target.value })} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500 cursor-pointer">
-                      <option value="normal">Normal</option>
-                      <option value="priority">Prioritario</option>
-                      <option value="dedicated">Dedicado</option>
-                    </select>
-                  </div>
-
-                  {/* Boolean checkboxes */}
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" checked={editForm.canUseCoupons} onChange={(e) => setEditForm({ ...editForm, canUseCoupons: e.target.checked })} className="w-4 h-4 accent-purple-500" />
-                      <label className="text-sm text-gray-300">Pode usar cupons</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" checked={editForm.hasAnalytics} onChange={(e) => setEditForm({ ...editForm, hasAnalytics: e.target.checked })} className="w-4 h-4 accent-purple-500" />
-                      <label className="text-sm text-gray-300">Analytics</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" checked={editForm.isContactSales} onChange={(e) => setEditForm({ ...editForm, isContactSales: e.target.checked })} className="w-4 h-4 accent-purple-500" />
-                      <label className="text-sm text-gray-300">Sob consulta (contato)</label>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      onClick={saveEdit}
-                      disabled={saving}
-                      className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
-                    >
-                      {saving ? "Salvando..." : "Salvar"}
-                    </button>
-                    <button
-                      onClick={() => setEditingPlan(null)}
-                      className="px-3 py-2 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 transition cursor-pointer"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* View mode */
-                <>
-                  <button
-                    onClick={() => startEdit(p)}
-                    className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-700/50 text-gray-400 hover:text-white hover:bg-gray-600/50 transition cursor-pointer"
-                    title="Editar plano"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                      <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
-                    </svg>
-                  </button>
-                  <h3 className="text-lg font-bold text-white">
-                    {planLabels[p.plan]}
-                  </h3>
-                  {p.isContactSales ? (
-                    <>
-                      <p className="text-2xl font-bold text-white mt-2">Sob consulta</p>
-                      <p className="mt-4 text-sm text-gray-400">Plano configuravel — o vendedor entra em contato para negociar</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-2xl font-bold text-white mt-2">
-                        {Number(p.monthlyPrice) === 0
-                          ? "Gratis"
-                          : `R$ ${Number(p.monthlyPrice).toFixed(2)}/mes`}
-                      </p>
-                      {Number(p.monthlyPrice) > 0 && (
-                        <div className="text-xs text-gray-400 mt-1 space-y-0.5">
-                          <p>Tri: R$ {Number(p.quarterlyPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.quarterlyPrice), 3)}%)</span></p>
-                          <p>Sem: R$ {Number(p.semiannualPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.semiannualPrice), 6)}%)</span></p>
-                          <p>Anual: R$ {Number(p.annualPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.annualPrice), 12)}%)</span></p>
-                        </div>
-                      )}
-                      <ul className="mt-4 space-y-2 text-sm text-gray-300">
-                        <li>Ate {p.maxStores} loja(s)</li>
-                        <li>
-                          {Number(p.commissionPercent) === 0 ? (
-                            <span className="text-green-400">Sem comissao</span>
-                          ) : (
-                            <span className="text-yellow-400">{Number(p.commissionPercent)}% de comissao</span>
-                          )}
-                        </li>
-                        <li>
-                          {p.freePromosPerWeek > 0
-                            ? `${p.freePromosPerWeek} promos gratis/semana`
-                            : "Sem promos gratis"}
-                        </li>
-                        <li>
-                          {p.maxProductsPerStore === 0
-                            ? "Produtos ilimitados"
-                            : `Ate ${p.maxProductsPerStore} produtos/loja`}
-                        </li>
-                        <li>
-                          {p.maxEmailsPerMonth === 0
-                            ? "Emails ilimitados"
-                            : `${p.maxEmailsPerMonth} emails/mes`}
-                        </li>
-                        <li>
-                          {p.highlightDaysPerMonth >= 30
-                            ? `${priorityLabels[p.listingPriority]} o mes todo`
-                            : p.highlightDaysPerMonth > 0
-                            ? `${priorityLabels[p.listingPriority]} ${p.highlightDaysPerMonth} dias/mes`
-                            : "Sem destaque"}
-                        </li>
-                        <li>Suporte: {supportLabels[p.supportLevel] ?? "Normal"}</li>
-                      </ul>
-                    </>
-                  )}
-                  {/* Feature checks - positives first, negatives last */}
-                  <ul className="mt-3 space-y-1">
-                    {p.freePromosPerWeek > 0 && <FeatureCheck enabled={true} label="Promocoes" />}
-                    {p.canUseCoupons && <FeatureCheck enabled={true} label="Cupons" />}
-                    {p.hasAnalytics && <FeatureCheck enabled={true} label="Analytics" />}
-                    {/* Negatives */}
-                    {!p.freePromosPerWeek && <FeatureCheck enabled={false} label="Promocoes" />}
-                    {!p.canUseCoupons && <FeatureCheck enabled={false} label="Cupons" />}
-                    {!p.hasAnalytics && <FeatureCheck enabled={false} label="Analytics" />}
-                  </ul>
-                </>
-              )}
-            </div>
-          ))}
+                )}
+                <ul className="mt-4 space-y-2 text-sm text-gray-300">
+                  <li>Ate {p.maxStores} loja(s)</li>
+                  <li>
+                    {Number(p.commissionPercent) === 0 ? (
+                      <span className="text-green-400">Sem comissao</span>
+                    ) : (
+                      <span className="text-yellow-400">{Number(p.commissionPercent)}% de comissao</span>
+                    )}
+                  </li>
+                  <li>
+                    {p.freePromosPerWeek > 0
+                      ? `${p.freePromosPerWeek} promos gratis/semana`
+                      : "Sem promos gratis"}
+                  </li>
+                  <li>
+                    {p.maxProductsPerStore === 0
+                      ? "Produtos ilimitados"
+                      : `Ate ${p.maxProductsPerStore} produtos/loja`}
+                  </li>
+                  <li>
+                    {p.maxEmailsPerMonth === 0
+                      ? "Emails ilimitados"
+                      : `${p.maxEmailsPerMonth} emails/mes`}
+                  </li>
+                  <li>
+                    {p.highlightDaysPerMonth >= 30
+                      ? `${priorityLabels[p.listingPriority]} o mes todo`
+                      : p.highlightDaysPerMonth > 0
+                      ? `${priorityLabels[p.listingPriority]} ${p.highlightDaysPerMonth} dias/mes`
+                      : "Sem destaque"}
+                  </li>
+                  <li>Suporte: {supportLabels[p.supportLevel] ?? "Normal"}</li>
+                </ul>
+              </>
+            )}
+            <ul className="mt-3 space-y-1">
+              {p.freePromosPerWeek > 0 && <FeatureCheck enabled={true} label="Promocoes" />}
+              {p.canUseCoupons && <FeatureCheck enabled={true} label="Cupons" />}
+              {p.hasAnalytics && <FeatureCheck enabled={true} label="Analytics" />}
+              {!p.freePromosPerWeek && <FeatureCheck enabled={false} label="Promocoes" />}
+              {!p.canUseCoupons && <FeatureCheck enabled={false} label="Cupons" />}
+              {!p.hasAnalytics && <FeatureCheck enabled={false} label="Analytics" />}
+            </ul>
+          </div>
+        ))}
         </div>
       </div>
 
