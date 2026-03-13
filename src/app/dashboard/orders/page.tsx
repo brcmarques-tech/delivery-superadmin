@@ -119,7 +119,7 @@ export default function OrdersPage() {
                 {order.items.map((item: any) => (
                   <div key={item.id} className="flex justify-between text-sm py-1">
                     <span className="text-gray-300">
-                      {item.quantity}x {item.product.name}
+                      {item.quantity}x {item.product?.name || 'Produto removido'}
                     </span>
                     <span className="text-gray-400">
                       R$ {Number(item.totalPrice).toFixed(2)}
