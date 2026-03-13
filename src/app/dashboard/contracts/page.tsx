@@ -22,7 +22,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, São Gabriel – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Vendedor, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -134,7 +134,7 @@ d) Inatividade prolongada (superior a 180 dias).
 
 11.1. Estes Termos são regidos pela legislação da República Federativa do Brasil.
 
-11.2. Fica eleito o foro da comarca de São Gabriel, Estado do Rio Grande do Sul, para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.
+11.2. Fica eleito o foro da comarca de Arroio Grande, Estado do Rio Grande do Sul, para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.
 
 11.3. A Empresa reserva-se o direito de alterar estes Termos a qualquer tempo, notificando o Usuário por meio da Plataforma. O uso continuado após a alteração implica aceitação dos novos Termos.
 
@@ -155,7 +155,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, São Gabriel – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Cliente, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -255,7 +255,7 @@ d) Interrupções decorrentes de falhas de terceiros, provedores de internet ou 
 
 10.1. Estes Termos são regidos pela legislação da República Federativa do Brasil.
 
-10.2. Fica eleito o foro da comarca de São Gabriel, Estado do Rio Grande do Sul, para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja, sem prejuízo do foro de domicílio do consumidor (art. 101, I, do CDC).
+10.2. Fica eleito o foro da comarca de Arroio Grande, Estado do Rio Grande do Sul, para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja, sem prejuízo do foro de domicílio do consumidor (art. 101, I, do CDC).
 
 10.3. A Empresa reserva-se o direito de alterar estes Termos a qualquer tempo, notificando o Usuário por meio da Plataforma.
 
@@ -268,7 +268,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, São Gabriel – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Entregador, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -384,7 +384,7 @@ e) Inatividade prolongada (superior a 180 dias).
 
 9.1. Estes Termos são regidos pela legislação da República Federativa do Brasil.
 
-9.2. Fica eleito o foro da comarca de São Gabriel, Estado do Rio Grande do Sul, para dirimir quaisquer controvérsias.
+9.2. Fica eleito o foro da comarca de Arroio Grande, Estado do Rio Grande do Sul, para dirimir quaisquer controvérsias.
 
 9.3. A Empresa reserva-se o direito de alterar estes Termos a qualquer tempo, notificando o Entregador por meio da Plataforma.
 
@@ -399,7 +399,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Este Contrato de Assinatura, doravante denominado "Contrato", regula a contratação de planos pagos na plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, São Gabriel – RS, doravante denominada "Empresa".
+Este Contrato de Assinatura, doravante denominado "Contrato", regula a contratação de planos pagos na plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Este Contrato é complementar e não substitui os Termos de Uso da Plataforma para Vendedor, que permanecem integralmente vigentes.
 
@@ -479,7 +479,7 @@ d) Anual: cobrança a cada 365 dias, com desconto de 30% sobre o valor mensal.
 
 11. FORO
 
-11.1. Este Contrato é regido pela legislação brasileira. Fica eleito o foro da comarca de São Gabriel – RS para dirimir quaisquer controvérsias.
+11.1. Este Contrato é regido pela legislação brasileira. Fica eleito o foro da comarca de Arroio Grande – RS para dirimir quaisquer controvérsias.
 
 Ao clicar em "Aceitar e Continuar", você manifesta seu consentimento livre, informado e inequívoco com todos os termos acima, nos termos do art. 8º da LGPD e do art. 49 do CDC.`;
 
