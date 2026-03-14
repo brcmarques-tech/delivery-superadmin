@@ -22,7 +22,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Vendedor, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -155,7 +155,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Cliente, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -268,7 +268,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Entregador, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -399,7 +399,7 @@ BCM TECH DELIVERY
 
 Última atualização: Março de 2026
 
-Este Contrato de Assinatura, doravante denominado "Contrato", regula a contratação de planos pagos na plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BRUNO CARDOSO MARQUES LTDA (BCM TECH), inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Este Contrato de Assinatura, doravante denominado "Contrato", regula a contratação de planos pagos na plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Este Contrato é complementar e não substitui os Termos de Uso da Plataforma para Vendedor, que permanecem integralmente vigentes.
 

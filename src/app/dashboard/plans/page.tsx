@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "@apollo/client";
 import {
-  GET_ALL_USERS,
+  GET_ALL_VENDOR_USERS,
   GET_AVAILABLE_PLANS,
   UPDATE_VENDOR_PLAN,
   UPDATE_PLAN_CONFIG,
@@ -60,7 +60,7 @@ function FeatureCheck({ enabled, label }: { enabled: boolean; label: string }) {
 }
 
 export default function PlansPage() {
-  const { data, loading, refetch } = useQuery(GET_ALL_USERS);
+  const { data, loading, refetch } = useQuery(GET_ALL_VENDOR_USERS);
   const { data: plansData, refetch: refetchPlans } = useQuery(GET_AVAILABLE_PLANS);
   const [updatePlan] = useMutation(UPDATE_VENDOR_PLAN);
   const [updatePlanConfig] = useMutation(UPDATE_PLAN_CONFIG);
@@ -90,9 +90,7 @@ export default function PlansPage() {
   const [saving, setSaving] = useState(false);
 
   const vendors =
-    data?.allUsers?.filter(
-      (u: any) => u.role === "VENDOR"
-    ) || [];
+    data?.allVendorUsers || [];
 
   const filtered = vendors.filter(
     (u: any) =>

@@ -18,6 +18,7 @@ const navItems = [
   { href: "/dashboard/coupons", label: "Cupons" },
   { href: "/dashboard/contracts", label: "Contratos" },
   { href: "/dashboard/notifications", label: "Notificacoes" },
+  { href: "/dashboard/settings", label: "Configuracoes" },
 ];
 
 export default function DashboardLayout({

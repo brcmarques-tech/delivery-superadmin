@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_ALL_STORES, TOGGLE_STORE_ACTIVE, SET_STORE_VERIFICATION } from "@/lib/graphql";
+import { GET_ALL_STORES, TOGGLE_STORE_ACTIVE, SET_STORE_VERIFICATION, REQUEST_STORE_DELETE } from "@/lib/graphql";
 import { useState } from "react";
 
 const BADGE_CONFIG: Record<string, { label: string; color: string; bg: string; emoji: string }> = {
@@ -18,9 +18,15 @@ export default function StoresPage() {
   const { data, loading, refetch } = useQuery(GET_ALL_STORES);
   const [toggleActive] = useMutation(TOGGLE_STORE_ACTIVE);
   const [setVerification] = useMutation(SET_STORE_VERIFICATION);
+  const [requestDelete] = useMutation(REQUEST_STORE_DELETE);
   const [filter, setFilter] = useState("");
   const [editingBadge, setEditingBadge] = useState<string | null>(null);
   const [badgeForm, setBadgeForm] = useState({ level: "NONE", score: 0 });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const stores = data?.allStores || [];
 
@@ -52,6 +58,29 @@ export default function StoresPage() {
     });
     setEditingBadge(null);
     refetch();
+  }
+
+  async function handleRequestDelete() {
+    if (!deletingId || !deletePassword) {
+      setDeleteError("Digite sua senha para confirmar");
+      return;
+    }
+    setDeleteError("");
+    setDeleteLoading(true);
+    try {
+      await requestDelete({ variables: { storeId: deletingId, password: deletePassword } });
+      setDeleteSuccess(true);
+    } catch (err: any) {
+      setDeleteError(err?.graphQLErrors?.[0]?.message || err?.message || "Erro ao solicitar exclusao");
+    }
+    setDeleteLoading(false);
+  }
+
+  function closeDeleteModal() {
+    setDeletingId(null);
+    setDeletePassword("");
+    setDeleteError("");
+    setDeleteSuccess(false);
   }
 
   if (loading) return <p className="text-gray-400">Carregando...</p>;
@@ -129,6 +158,64 @@ export default function StoresPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeDeleteModal}>
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            {deleteSuccess ? (
+              <>
+                <h3 className="text-lg font-bold text-green-400 mb-2">Email enviado!</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  Um email de confirmacao foi enviado. Clique no link do email para concluir a exclusao da loja.
+                </p>
+                <p className="text-xs text-gray-500 mb-6">O link expira em 30 minutos.</p>
+                <button
+                  onClick={closeDeleteModal}
+                  className="w-full px-4 py-2.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 transition cursor-pointer"
+                >
+                  Fechar
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-white mb-2">Excluir loja?</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  Esta acao e irreversivel. Digite sua senha para confirmar. Um email de confirmacao sera enviado.
+                </p>
+                {deleteError && (
+                  <div className="mb-4 px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm">
+                    {deleteError}
+                  </div>
+                )}
+                <input
+                  type="password"
+                  placeholder="Sua senha..."
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleRequestDelete()}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleRequestDelete}
+                    disabled={deleteLoading}
+                    className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition cursor-pointer"
+                  >
+                    {deleteLoading ? "Verificando..." : "Confirmar exclusao"}
+                  </button>
+                  <button
+                    onClick={closeDeleteModal}
+                    className="flex-1 px-4 py-2.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 transition cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -261,16 +348,24 @@ export default function StoresPage() {
                 </button>
               </div>
 
-              <button
-                onClick={() => handleToggleActive(store.id)}
-                className={`w-full py-2 rounded-xl text-sm font-semibold cursor-pointer transition active:scale-95 ${
-                  store.isActive
-                    ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
-                    : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
-                }`}
-              >
-                {store.isActive ? "Desativar Loja" : "Ativar Loja"}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleToggleActive(store.id)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold cursor-pointer transition active:scale-95 ${
+                    store.isActive
+                      ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                      : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+                  }`}
+                >
+                  {store.isActive ? "Desativar" : "Ativar"}
+                </button>
+                <button
+                  onClick={() => setDeletingId(store.id)}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition active:scale-95 bg-red-600/20 text-red-400 hover:bg-red-600/40"
+                >
+                  Excluir
+                </button>
+              </div>
             </div>
           );
         })}
