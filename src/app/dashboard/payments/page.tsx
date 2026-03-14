@@ -37,8 +37,8 @@ export default function PaymentsPage() {
     if (!filter) return true;
     const q = filter.toLowerCase();
     return (
-      p.user?.name?.toLowerCase().includes(q) ||
-      p.user?.email?.toLowerCase().includes(q) ||
+      (p.vendorUser || p.appUser)?.name?.toLowerCase().includes(q) ||
+      (p.vendorUser || p.appUser)?.email?.toLowerCase().includes(q) ||
       p.description?.toLowerCase().includes(q)
     );
   });
@@ -119,8 +119,8 @@ export default function PaymentsPage() {
             </div>
 
             {/* User */}
-            <p className="text-white font-bold text-sm mb-0.5">{p.user?.name}</p>
-            <p className="text-gray-400 text-xs break-all mb-3">{p.user?.email}</p>
+            <p className="text-white font-bold text-sm mb-0.5">{(p.vendorUser || p.appUser)?.name}</p>
+            <p className="text-gray-400 text-xs break-all mb-3">{(p.vendorUser || p.appUser)?.email}</p>
 
             {/* Type + description */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -166,8 +166,8 @@ export default function PaymentsPage() {
                   {new Date(p.createdAt).toLocaleDateString("pt-BR")}
                 </td>
                 <td className="py-3 px-3 sm:px-4">
-                  <p className="text-white">{p.user?.name}</p>
-                  <p className="text-gray-500 text-xs">{p.user?.email}</p>
+                  <p className="text-white">{(p.vendorUser || p.appUser)?.name}</p>
+                  <p className="text-gray-500 text-xs">{(p.vendorUser || p.appUser)?.email}</p>
                 </td>
                 <td className="py-3 px-3 sm:px-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${

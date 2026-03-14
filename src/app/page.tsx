@@ -18,12 +18,12 @@ export default function LoginPage() {
     setError("");
     try {
       const { data } = await login({ variables: { input: { email, password } } });
-      if (data.login.user.role !== "SUPERADMIN") {
+      if (data.loginApp.user.role !== "SUPERADMIN") {
         setError("Acesso permitido apenas para Super Admin");
         return;
       }
-      localStorage.setItem("token", data.login.accessToken);
-      localStorage.setItem("user", JSON.stringify(data.login.user));
+      localStorage.setItem("token", data.loginApp.accessToken);
+      localStorage.setItem("user", JSON.stringify(data.loginApp.user));
       router.push("/dashboard");
     } catch {
       setError("Email ou senha invalidos");

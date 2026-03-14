@@ -1,7 +1,14 @@
 "use client";
 
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_PENDING_APPROVALS, APPROVE_USER, REJECT_USER } from "@/lib/graphql";
+import {
+  GET_PENDING_APP_APPROVALS,
+  GET_PENDING_VENDOR_APPROVALS,
+  APPROVE_APP_USER,
+  APPROVE_VENDOR_USER,
+  REJECT_APP_USER,
+  REJECT_VENDOR_USER,
+} from "@/lib/graphql";
 import { useState } from "react";
 
 const roleLabels: Record<string, string> = {
@@ -20,49 +27,67 @@ interface PendingUser {
   role: string;
   pendingRole: string;
   cpf: string | null;
-  vehicleType: string | null;
-  vehiclePlate: string | null;
-  identityPhotoUrl: string | null;
+  vehicleType?: string | null;
+  vehiclePlate?: string | null;
+  identityPhotoUrl?: string | null;
   createdAt: string;
+  _source: "app" | "vendor";
 }
 
 export default function ApprovalsPage() {
-  const { data, loading, refetch } = useQuery(GET_PENDING_APPROVALS);
-  const [approveUser] = useMutation(APPROVE_USER);
-  const [rejectUser] = useMutation(REJECT_USER);
+  const { data: appData, loading: loadingApp, refetch: refetchApp } = useQuery(GET_PENDING_APP_APPROVALS);
+  const { data: vendorData, loading: loadingVendor, refetch: refetchVendor } = useQuery(GET_PENDING_VENDOR_APPROVALS);
+  const [approveAppUser] = useMutation(APPROVE_APP_USER);
+  const [approveVendorUser] = useMutation(APPROVE_VENDOR_USER);
+  const [rejectAppUser] = useMutation(REJECT_APP_USER);
+  const [rejectVendorUser] = useMutation(REJECT_VENDOR_USER);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [processing, setProcessing] = useState<string | null>(null);
 
-  async function handleApprove(id: string) {
-    setProcessing(id);
+  const loading = loadingApp || loadingVendor;
+
+  const appPending: PendingUser[] = (appData?.pendingAppApprovals || []).map((u: any) => ({ ...u, _source: "app" }));
+  const vendorPending: PendingUser[] = (vendorData?.pendingVendorApprovals || []).map((u: any) => ({ ...u, _source: "vendor" }));
+  const pending = [...appPending, ...vendorPending];
+
+  async function handleApprove(user: PendingUser) {
+    setProcessing(user.id);
     try {
-      await approveUser({ variables: { id } });
-      refetch();
+      if (user._source === "vendor") {
+        await approveVendorUser({ variables: { id: user.id } });
+        refetchVendor();
+      } else {
+        await approveAppUser({ variables: { id: user.id } });
+        refetchApp();
+      }
     } catch {
       alert("Erro ao aprovar usuario");
     }
     setProcessing(null);
   }
 
-  async function handleReject(id: string) {
+  async function handleReject(user: PendingUser) {
     if (!rejectReason.trim()) {
       alert("Informe o motivo da rejeicao");
       return;
     }
-    setProcessing(id);
+    setProcessing(user.id);
     try {
-      await rejectUser({ variables: { id, reason: rejectReason } });
+      if (user._source === "vendor") {
+        await rejectVendorUser({ variables: { id: user.id, reason: rejectReason } });
+        refetchVendor();
+      } else {
+        await rejectAppUser({ variables: { id: user.id, reason: rejectReason } });
+        refetchApp();
+      }
       setRejectingId(null);
       setRejectReason("");
-      refetch();
     } catch {
       alert("Erro ao rejeitar usuario");
     }
     setProcessing(null);
   }
-
-  const pending: PendingUser[] = data?.pendingApprovals || [];
 
   return (
     <div>
@@ -93,13 +118,12 @@ export default function ApprovalsPage() {
                   <h3 className="text-lg font-semibold text-white">{user.name}</h3>
                   <span
                     className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      (user.pendingRole || user.role) === "VENDOR"
+                      user._source === "vendor"
                         ? "bg-orange-500/20 text-orange-400"
                         : "bg-blue-500/20 text-blue-400"
                     }`}
                   >
-                    {(user.pendingRole || user.role) === "VENDOR" ? "Vendedor" : "Entregador"}
-                    {!user.pendingRole && " (conta antiga)"}
+                    {user._source === "vendor" ? "Vendedor" : "Entregador"}
                   </span>
                 </div>
 
@@ -110,7 +134,7 @@ export default function ApprovalsPage() {
                   <p>Solicitado em: <span className="text-gray-300">{new Date(user.createdAt).toLocaleDateString("pt-BR")}</span></p>
                 </div>
 
-                {user.pendingRole === "DELIVERER" && (
+                {user._source === "app" && user.pendingRole === "DELIVERER" && (
                   <div className="mt-3 p-3 bg-gray-700/50 rounded-xl">
                     <p className="text-sm font-medium text-gray-300 mb-2">Dados do entregador:</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-gray-400">
@@ -134,7 +158,7 @@ export default function ApprovalsPage() {
 
               <div className="flex flex-wrap gap-2 ml-0 sm:ml-6">
                 <button
-                  onClick={() => handleApprove(user.id)}
+                  onClick={() => handleApprove(user)}
                   disabled={processing === user.id}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium cursor-pointer hover:bg-green-700 disabled:opacity-50 transition"
                 >
@@ -160,7 +184,7 @@ export default function ApprovalsPage() {
                   className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg text-sm border border-gray-600 focus:outline-none focus:border-red-500"
                 />
                 <button
-                  onClick={() => handleReject(user.id)}
+                  onClick={() => handleReject(user)}
                   disabled={processing === user.id}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium cursor-pointer hover:bg-red-700 disabled:opacity-50 transition"
                 >
