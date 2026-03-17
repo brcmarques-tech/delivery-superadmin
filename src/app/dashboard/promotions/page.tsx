@@ -10,6 +10,7 @@ import {
   GET_DELIVERY_PRICES,
   SET_DELIVERY_PRICE_PER_KM,
   SET_DELIVERY_BASE_PRICE,
+  SET_DELIVERY_COMMISSION,
 } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 
@@ -22,6 +23,7 @@ export default function PromotionsPage() {
   const [setPromoPrice, { loading: savingPrice }] = useMutation(SET_PROMO_PRICE_PER_DAY);
   const [setDeliveryPerKm, { loading: savingKm }] = useMutation(SET_DELIVERY_PRICE_PER_KM);
   const [setDeliveryBase, { loading: savingBase }] = useMutation(SET_DELIVERY_BASE_PRICE);
+  const [setDeliveryCommission, { loading: savingCommission }] = useMutation(SET_DELIVERY_COMMISSION);
 
   const promotions = data?.allPromotions || [];
   const currentPrice = priceData?.promoPricePerDay ?? 1;
@@ -29,8 +31,10 @@ export default function PromotionsPage() {
 
   const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;
   const currentBase = deliveryData?.deliveryBasePrice ?? 3;
+  const currentCommission = deliveryData?.deliveryCommissionPercent ?? 1;
   const [perKmInput, setPerKmInput] = useState("");
   const [baseInput, setBaseInput] = useState("");
+  const [commissionInput, setCommissionInput] = useState("");
 
   useEffect(() => {
     if (priceData?.promoPricePerDay != null) {
@@ -41,6 +45,7 @@ export default function PromotionsPage() {
   useEffect(() => {
     if (deliveryData?.deliveryPricePerKm != null) setPerKmInput(String(deliveryData.deliveryPricePerKm));
     if (deliveryData?.deliveryBasePrice != null) setBaseInput(String(deliveryData.deliveryBasePrice));
+    if (deliveryData?.deliveryCommissionPercent != null) setCommissionInput(String(deliveryData.deliveryCommissionPercent));
   }, [deliveryData]);
 
   async function handleToggleActive(id: string) {
@@ -72,6 +77,13 @@ export default function PromotionsPage() {
     const val = parseFloat(baseInput);
     if (isNaN(val) || val < 0) return;
     await setDeliveryBase({ variables: { price: val } });
+    refetchDelivery();
+  }
+
+  async function handleSaveCommission() {
+    const val = parseFloat(commissionInput);
+    if (isNaN(val) || val < 0 || val > 100) return;
+    await setDeliveryCommission({ variables: { percent: val } });
     refetchDelivery();
   }
 
@@ -156,6 +168,34 @@ export default function PromotionsPage() {
             </button>
           </div>
           <span className="text-gray-500 text-xs">Ex: 5km = R$ {(currentBase + 5 * currentPerKm).toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* Comissão sobre entregas */}
+      <div className="bg-gray-800 rounded-2xl border border-gray-700 p-5 mb-6">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3">Comissao da plataforma sobre entregas</h2>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-gray-300 text-sm">Percentual:</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="100"
+              value={commissionInput}
+              onChange={(e) => setCommissionInput(e.target.value)}
+              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500"
+            />
+            <span className="text-gray-400">%</span>
+            <button
+              onClick={handleSaveCommission}
+              disabled={savingCommission || parseFloat(commissionInput) === currentCommission}
+              className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
+            >
+              {savingCommission ? "..." : "Salvar"}
+            </button>
+          </div>
+          <span className="text-gray-500 text-xs">Atual: {currentCommission}% — Ex: entrega R$ 10,00 = R$ {(10 * currentCommission / 100).toFixed(2)} p/ plataforma</span>
         </div>
       </div>
 

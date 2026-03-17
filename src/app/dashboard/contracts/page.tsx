@@ -74,7 +74,7 @@ d) Danos materiais, morais ou lucros cessantes sofridos por terceiros em razão 
 
 a) Manter a Plataforma disponível e funcional, ressalvados períodos de manutenção programada ou eventos de força maior;
 
-b) Processar os pagamentos de forma segura através de intermediadores autorizados (Mercado Pago);
+b) Processar os pagamentos de forma segura através de intermediadores autorizados (Pagar.me);
 
 c) Repassar os valores devidos ao Vendedor conforme as regras do plano contratado.
 
@@ -90,7 +90,7 @@ c) Repassar os valores devidos ao Vendedor conforme as regras do plano contratad
 
 6.1. A Empresa cobra comissão sobre o valor dos pedidos conforme o plano contratado pelo Vendedor.
 
-6.2. Os pagamentos dos clientes são processados pelo Mercado Pago, que atua como intermediador de pagamentos nos termos da legislação vigente.
+6.2. Os pagamentos dos clientes são processados pelo Pagar.me, que atua como intermediador de pagamentos nos termos da legislação vigente.
 
 6.3. A Empresa não se responsabiliza por estornos (chargebacks) decorrentes de fraudes ou disputas entre o Vendedor e o cliente.
 
@@ -185,7 +185,7 @@ Ao criar uma conta e utilizar a Plataforma como Cliente, você declara ter lido,
 
 4. PAGAMENTOS
 
-4.1. Os pagamentos são processados pelo Mercado Pago, intermediador de pagamentos autorizado pelo Banco Central do Brasil.
+4.1. Os pagamentos são processados pelo Pagar.me, intermediador de pagamentos autorizado pelo Banco Central do Brasil.
 
 4.2. A Empresa não armazena dados de cartão de crédito ou informações bancárias do Cliente.
 
@@ -344,7 +344,7 @@ e) Qualquer reclamação, ação judicial ou administrativa movida por terceiros
 
 5.1. O Entregador receberá o valor da entrega conforme a tabela vigente na Plataforma, que leva em consideração a distância percorrida.
 
-5.2. Os pagamentos são processados pelo Mercado Pago e transferidos diretamente para a conta cadastrada pelo Entregador.
+5.2. Os pagamentos são processados pelo Pagar.me e transferidos diretamente para a conta cadastrada pelo Entregador.
 
 5.3. A Empresa não é responsável por atrasos nos pagamentos decorrentes de falhas do intermediador de pagamentos ou de informações bancárias incorretas fornecidas pelo Entregador.
 
@@ -425,7 +425,7 @@ d) Anual: cobrança a cada 365 dias, com desconto de 30% sobre o valor mensal.
 
 3. FORMA DE PAGAMENTO
 
-3.1. Os pagamentos são processados pelo Mercado Pago, intermediador de pagamentos autorizado pelo Banco Central do Brasil.
+3.1. Os pagamentos são processados pelo Pagar.me, intermediador de pagamentos autorizado pelo Banco Central do Brasil.
 
 3.2. São aceitos: cartão de crédito (à vista ou parcelado), PIX e boleto bancário, conforme disponibilidade.
 
@@ -469,7 +469,7 @@ d) Anual: cobrança a cada 365 dias, com desconto de 30% sobre o valor mensal.
 
 9. PROTEÇÃO DE DADOS
 
-9.1. Os dados de pagamento são processados exclusivamente pelo Mercado Pago e não são armazenados pela Empresa.
+9.1. Os dados de pagamento são processados exclusivamente pelo Pagar.me e não são armazenados pela Empresa.
 
 9.2. O tratamento de dados pessoais segue a Política de Privacidade e a LGPD (Lei nº 13.709/2018).
 

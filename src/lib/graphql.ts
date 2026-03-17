@@ -34,7 +34,7 @@ export const GET_ALL_APP_USERS = gql`
       id name email phone role isActive createdAt
       pendingRole cpf vehicleType vehiclePlate identityPhotoUrl
       approvedAt rejectedAt rejectionReason
-      mpConnected permissions notificationEmail
+      paymentConnected permissions notificationEmail
     }
   }
 `;
@@ -45,7 +45,7 @@ export const GET_ALL_VENDOR_USERS = gql`
       id name email phone role isActive createdAt
       pendingRole cpf
       approvedAt rejectedAt rejectionReason
-      vendorPlan planExpiresAt mpConnected
+      vendorPlan planExpiresAt paymentConnected
       stores { id name }
     }
   }
@@ -283,6 +283,7 @@ export const GET_DELIVERY_PRICES = gql`
   query DeliveryPrices {
     deliveryPricePerKm
     deliveryBasePrice
+    deliveryCommissionPercent
   }
 `;
 
@@ -295,6 +296,12 @@ export const SET_DELIVERY_PRICE_PER_KM = gql`
 export const SET_DELIVERY_BASE_PRICE = gql`
   mutation SetDeliveryBasePrice($price: Float!) {
     setDeliveryBasePrice(price: $price) { id key value }
+  }
+`;
+
+export const SET_DELIVERY_COMMISSION = gql`
+  mutation SetDeliveryCommission($percent: Float!) {
+    setDeliveryCommissionPercent(percent: $percent) { id key value }
   }
 `;
 

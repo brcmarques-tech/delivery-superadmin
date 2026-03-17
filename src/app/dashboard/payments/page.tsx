@@ -56,7 +56,7 @@ export default function PaymentsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-2">Pagamentos da Plataforma ({payments.length})</h1>
-      <p className="text-sm text-gray-500 mb-6">Planos, promocoes e repasses de entregadores — pedidos de lojas sao processados via split direto pelo Mercado Pago</p>
+      <p className="text-sm text-gray-500 mb-6">Planos, promocoes e repasses de entregadores — pedidos de lojas sao processados via split direto pelo Pagar.me</p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">

@@ -115,12 +115,12 @@ export default function UsersPage() {
                 {(tab === "vendors" || tab === "deliverers") && (
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      user.mpConnected
+                      user.paymentConnected
                         ? "bg-emerald-500/20 text-emerald-400"
                         : "bg-gray-600/30 text-gray-500"
                     }`}
                   >
-                    {user.mpConnected ? "MP \u2713" : "MP \u2717"}
+                    {user.paymentConnected ? "Pag \u2713" : "Pag \u2717"}
                   </span>
                 )}
               </div>
@@ -204,12 +204,12 @@ export default function UsersPage() {
                     {(tab === "vendors" || tab === "deliverers") && (
                       <span
                         className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          user.mpConnected
+                          user.paymentConnected
                             ? "bg-emerald-500/20 text-emerald-400"
                             : "bg-gray-600/30 text-gray-500"
                         }`}
                       >
-                        {user.mpConnected ? "MP \u2713" : "MP \u2717"}
+                        {user.paymentConnected ? "Pag \u2713" : "Pag \u2717"}
                       </span>
                     )}
                   </td>

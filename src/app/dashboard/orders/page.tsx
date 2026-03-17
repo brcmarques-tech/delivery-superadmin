@@ -90,7 +90,7 @@ export default function OrdersPage() {
                   )}
                   {order.paymentMethod && (
                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-600/30 text-gray-400">
-                      {order.paymentMethod === "MP_MARKETPLACE" ? "MP Split" : order.paymentMethod}
+                      {order.paymentMethod === "MP_MARKETPLACE" ? "Split" : order.paymentMethod}
                     </span>
                   )}
                 </div>
