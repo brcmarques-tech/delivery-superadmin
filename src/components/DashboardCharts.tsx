@@ -146,7 +146,7 @@ export default function DashboardCharts({
               <Tooltip
                 contentStyle={{ backgroundColor: "#111827", border: "1px solid #374151", borderRadius: 8, fontSize: 12 }}
                 itemStyle={{ color: "#d1d5db" }}
-                formatter={(value: number) => [value, "Usuários"]}
+                formatter={(value) => [value, "Usuários"]}
               />
               <Bar dataKey="count" name="Usuários" radius={[6, 6, 0, 0]}>
                 {barData.map((entry, index) => (
