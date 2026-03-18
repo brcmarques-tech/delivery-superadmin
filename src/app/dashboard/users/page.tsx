@@ -38,6 +38,7 @@ export default function UsersPage() {
   const [filter, setFilter] = useState("");
   const [tab, setTab] = useState<Tab>("customers");
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [roleEditId, setRoleEditId] = useState<string | null>(null);
 
   const allAppUsers = appData?.allAppUsers || [];
   const vendorUsers = vendorData?.allVendorUsers || [];
@@ -65,6 +66,12 @@ export default function UsersPage() {
       u.phone?.includes(filter)
     );
   });
+
+  async function handleChangeRole(userId: string, newRole: string) {
+    await updateRole({ variables: { id: userId, role: newRole } });
+    refetchApp();
+    setRoleEditId(null);
+  }
 
   async function handleToggleActive(userId: string) {
     if (tab === "vendors") {
@@ -176,7 +183,35 @@ export default function UsersPage() {
               <p className="text-gray-600 text-xs">Cadastro: {new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
             </div>
 
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end gap-2">
+              {tab !== "vendors" && (
+                roleEditId === user.id ? (
+                  <div className="flex items-center gap-1">
+                    {["CUSTOMER", "DELIVERER", "SUPERADMIN"].filter(r => r !== user.role).map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => handleChangeRole(user.id, r)}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer transition active:scale-95 ${roleColors[r]}`}
+                      >
+                        {roleLabels[r]}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setRoleEditId(null)}
+                      className="px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer text-gray-400 hover:text-white transition"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setRoleEditId(user.id)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 bg-purple-600/20 text-purple-400 hover:bg-purple-600/30"
+                  >
+                    Trocar Role
+                  </button>
+                )
+              )}
               <button
                 onClick={() => handleToggleActive(user.id)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
@@ -266,16 +301,46 @@ export default function UsersPage() {
                     </span>
                   </td>
                   <td className="p-4">
-                    <button
-                      onClick={() => handleToggleActive(user.id)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
-                        user.isActive
-                          ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
-                          : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
-                      }`}
-                    >
-                      {user.isActive ? "Desativar" : "Ativar"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {tab !== "vendors" && (
+                        roleEditId === user.id ? (
+                          <div className="flex items-center gap-1">
+                            {["CUSTOMER", "DELIVERER", "SUPERADMIN"].filter(r => r !== user.role).map((r) => (
+                              <button
+                                key={r}
+                                onClick={() => handleChangeRole(user.id, r)}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer transition active:scale-95 ${roleColors[r]}`}
+                              >
+                                {roleLabels[r]}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => setRoleEditId(null)}
+                              className="px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer text-gray-400 hover:text-white transition"
+                            >
+                              X
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setRoleEditId(user.id)}
+                            className="px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 bg-purple-600/20 text-purple-400 hover:bg-purple-600/30"
+                          >
+                            Role
+                          </button>
+                        )
+                      )}
+                      <button
+                        onClick={() => handleToggleActive(user.id)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer transition active:scale-95 ${
+                          user.isActive
+                            ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                            : "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+                        }`}
+                      >
+                        {user.isActive ? "Desativar" : "Ativar"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
