@@ -23,14 +23,24 @@ export default function NotificationsPage() {
   const [clearAllNotifications] = useMutation(CLEAR_ALL_NOTIFICATIONS);
   const [resending, setResending] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "success" | "failed">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const logs: NotifLog[] = data?.notificationLogs || [];
   const totalSent = logs.filter((l) => l.success).length;
   const totalFailed = logs.filter((l) => !l.success).length;
 
   const filteredLogs = logs.filter((l) => {
-    if (filter === "success") return l.success;
-    if (filter === "failed") return !l.success;
+    if (filter === "success" && !l.success) return false;
+    if (filter === "failed" && l.success) return false;
+    if (dateFrom) {
+      const logDate = new Date(l.createdAt).toISOString().slice(0, 10);
+      if (logDate < dateFrom) return false;
+    }
+    if (dateTo) {
+      const logDate = new Date(l.createdAt).toISOString().slice(0, 10);
+      if (logDate > dateTo) return false;
+    }
     return true;
   });
 
@@ -97,7 +107,7 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           {(["all", "success", "failed"] as const).map((f) => (
             <button
               key={f}
@@ -111,6 +121,20 @@ export default function NotificationsPage() {
               {f === "all" ? "Todos" : f === "success" ? "Enviados" : "Falharam"}
             </button>
           ))}
+          <div className="flex items-center gap-2 ml-auto">
+            <label className="text-xs text-gray-500">De:</label>
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+              className="text-xs px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500" />
+            <label className="text-xs text-gray-500">Até:</label>
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+              className="text-xs px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500" />
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(""); setDateTo(""); }}
+                className="text-xs px-3 py-2 text-gray-400 hover:text-white transition cursor-pointer">
+                Limpar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

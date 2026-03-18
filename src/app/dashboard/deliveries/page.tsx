@@ -1,13 +1,70 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
-import { GET_ALL_DELIVERIES } from "@/lib/graphql";
-import { useState } from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import {
+  GET_ALL_DELIVERIES,
+  GET_DELIVERY_PRICES,
+  SET_DELIVERY_PRICE_PER_KM,
+  SET_DELIVERY_BASE_PRICE,
+  SET_DELIVERY_COMMISSION,
+  SET_MINIMUM_ORDER_PLATFORM,
+} from "@/lib/graphql";
+import { useState, useEffect } from "react";
 
 export default function DeliveriesPage() {
   const { data, loading } = useQuery(GET_ALL_DELIVERIES, { pollInterval: 15000 });
+  const { data: deliveryData, refetch: refetchDelivery } = useQuery(GET_DELIVERY_PRICES);
+  const [setDeliveryPerKm, { loading: savingKm }] = useMutation(SET_DELIVERY_PRICE_PER_KM);
+  const [setDeliveryBase, { loading: savingBase }] = useMutation(SET_DELIVERY_BASE_PRICE);
+  const [setDeliveryCommission, { loading: savingCommission }] = useMutation(SET_DELIVERY_COMMISSION);
+  const [setMinOrder, { loading: savingMinOrder }] = useMutation(SET_MINIMUM_ORDER_PLATFORM);
+
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+
+  const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;
+  const currentBase = deliveryData?.deliveryBasePrice ?? 3;
+  const currentCommission = deliveryData?.deliveryCommissionPercent ?? 1;
+  const currentMinOrder = deliveryData?.minimumOrderPlatform ?? 10;
+  const [perKmInput, setPerKmInput] = useState("");
+  const [baseInput, setBaseInput] = useState("");
+  const [commissionInput, setCommissionInput] = useState("");
+  const [minOrderInput, setMinOrderInput] = useState("");
+
+  useEffect(() => {
+    if (deliveryData?.deliveryPricePerKm != null) setPerKmInput(String(deliveryData.deliveryPricePerKm));
+    if (deliveryData?.deliveryBasePrice != null) setBaseInput(String(deliveryData.deliveryBasePrice));
+    if (deliveryData?.deliveryCommissionPercent != null) setCommissionInput(String(deliveryData.deliveryCommissionPercent));
+    if (deliveryData?.minimumOrderPlatform != null) setMinOrderInput(String(deliveryData.minimumOrderPlatform));
+  }, [deliveryData]);
+
+  async function handleSaveDeliveryPerKm() {
+    const val = parseFloat(perKmInput);
+    if (isNaN(val) || val < 0) return;
+    await setDeliveryPerKm({ variables: { price: val } });
+    refetchDelivery();
+  }
+
+  async function handleSaveDeliveryBase() {
+    const val = parseFloat(baseInput);
+    if (isNaN(val) || val < 0) return;
+    await setDeliveryBase({ variables: { price: val } });
+    refetchDelivery();
+  }
+
+  async function handleSaveCommission() {
+    const val = parseFloat(commissionInput);
+    if (isNaN(val) || val < 0 || val > 100) return;
+    await setDeliveryCommission({ variables: { percent: val } });
+    refetchDelivery();
+  }
+
+  async function handleSaveMinOrder() {
+    const val = parseFloat(minOrderInput);
+    if (isNaN(val) || val < 0) return;
+    await setMinOrder({ variables: { price: val } });
+    refetchDelivery();
+  }
 
   const deliveries = data?.allDeliveries || [];
 
@@ -63,6 +120,75 @@ export default function DeliveriesPage() {
         <div className="bg-gray-800 rounded-2xl p-4 border border-emerald-800">
           <p className="text-sm text-gray-400">Concluidas</p>
           <p className="text-2xl font-bold text-emerald-400">{completed}</p>
+        </div>
+      </div>
+
+      {/* Configurações de entrega */}
+      <div className="bg-gray-800 rounded-2xl border border-gray-700 p-5 mb-6">
+        <h2 className="text-sm font-semibold text-gray-400 mb-4">Configurações de entrega</h2>
+
+        {/* Taxa de entrega */}
+        <div className="mb-4">
+          <p className="text-xs text-gray-500 mb-2">Taxa de entrega (por distância)</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-gray-300 text-sm">Base:</label>
+              <span className="text-gray-400">R$</span>
+              <input type="number" step="0.01" min="0" value={baseInput} onChange={(e) => setBaseInput(e.target.value)}
+                className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500" />
+              <button onClick={handleSaveDeliveryBase} disabled={savingBase || parseFloat(baseInput) === currentBase}
+                className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50">
+                {savingBase ? "..." : "Salvar"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-gray-300 text-sm">Por km:</label>
+              <span className="text-gray-400">R$</span>
+              <input type="number" step="0.01" min="0" value={perKmInput} onChange={(e) => setPerKmInput(e.target.value)}
+                className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500" />
+              <button onClick={handleSaveDeliveryPerKm} disabled={savingKm || parseFloat(perKmInput) === currentPerKm}
+                className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50">
+                {savingKm ? "..." : "Salvar"}
+              </button>
+            </div>
+            <span className="text-gray-500 text-xs">Ex: 5km = R$ {(currentBase + 5 * currentPerKm).toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Comissão */}
+        <div className="mb-4 pt-4 border-t border-gray-700">
+          <p className="text-xs text-gray-500 mb-2">Comissão da plataforma sobre entregas</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-gray-300 text-sm">Percentual:</label>
+              <input type="number" step="0.1" min="0" max="100" value={commissionInput} onChange={(e) => setCommissionInput(e.target.value)}
+                className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500" />
+              <span className="text-gray-400">%</span>
+              <button onClick={handleSaveCommission} disabled={savingCommission || parseFloat(commissionInput) === currentCommission}
+                className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50">
+                {savingCommission ? "..." : "Salvar"}
+              </button>
+            </div>
+            <span className="text-gray-500 text-xs">Atual: {currentCommission}% — Ex: entrega R$ 10,00 = R$ {(10 * currentCommission / 100).toFixed(2)} p/ plataforma</span>
+          </div>
+        </div>
+
+        {/* Pedido mínimo plataforma */}
+        <div className="pt-4 border-t border-gray-700">
+          <p className="text-xs text-gray-500 mb-2">Pedido mínimo (entregadores do app)</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-gray-300 text-sm">Valor mínimo:</label>
+              <span className="text-gray-400">R$</span>
+              <input type="number" step="0.01" min="0" value={minOrderInput} onChange={(e) => setMinOrderInput(e.target.value)}
+                className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500" />
+              <button onClick={handleSaveMinOrder} disabled={savingMinOrder || parseFloat(minOrderInput) === currentMinOrder}
+                className="px-4 py-1.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50">
+                {savingMinOrder ? "..." : "Salvar"}
+              </button>
+            </div>
+            <span className="text-gray-500 text-xs">Atual: R$ {currentMinOrder.toFixed(2)} — Lojas com entregadores do app não aceitam pedidos abaixo deste valor</span>
+          </div>
         </div>
       </div>
 

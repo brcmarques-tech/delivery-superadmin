@@ -24,6 +24,11 @@ export const GET_DASHBOARD_STATS = gql`
       activeDeliveries
       completedDeliveries
       onlineDeliverers
+      ordersByDay { date count revenue }
+      topStores { storeId storeName orderCount revenue }
+      recentOrders { id orderNumber status total customerName storeName createdAt }
+      avgTicket
+      cancellationRate
     }
   }
 `;
@@ -32,7 +37,7 @@ export const GET_ALL_APP_USERS = gql`
   query AllAppUsers {
     allAppUsers {
       id name email phone role isActive createdAt
-      pendingRole cpf vehicleType vehiclePlate identityPhotoUrl
+      pendingRole cpf vehicleType vehiclePlate identityPhotoUrl identityPhotoBackUrl profilePhotoUrl
       approvedAt rejectedAt rejectionReason
       paymentConnected permissions notificationEmail
     }
@@ -108,7 +113,7 @@ export const GET_PENDING_APP_APPROVALS = gql`
   query PendingAppApprovals {
     pendingAppApprovals {
       id name email phone role pendingRole cpf
-      vehicleType vehiclePlate identityPhotoUrl createdAt
+      vehicleType vehiclePlate identityPhotoUrl identityPhotoBackUrl profilePhotoUrl createdAt
     }
   }
 `;
@@ -168,6 +173,15 @@ export const DELETE_NOTIFICATION = gql`
 export const CLEAR_ALL_NOTIFICATIONS = gql`
   mutation ClearAllNotifications {
     clearAllNotifications
+  }
+`;
+
+export const GET_APPROVAL_LOGS = gql`
+  query ApprovalLogs {
+    approvalLogs {
+      id userId userName userEmail userType action role reason createdAt
+      profilePhotoUrl identityPhotoUrl identityPhotoBackUrl
+    }
   }
 `;
 
@@ -284,6 +298,13 @@ export const GET_DELIVERY_PRICES = gql`
     deliveryPricePerKm
     deliveryBasePrice
     deliveryCommissionPercent
+    minimumOrderPlatform
+  }
+`;
+
+export const SET_MINIMUM_ORDER_PLATFORM = gql`
+  mutation SetMinimumOrderPlatform($price: Float!) {
+    setMinimumOrderPlatform(price: $price) { id key value }
   }
 `;
 

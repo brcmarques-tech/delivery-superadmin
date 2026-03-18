@@ -4,21 +4,41 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/approvals", label: "Aprovacoes" },
-  { href: "/dashboard/users", label: "Usuarios" },
-  { href: "/dashboard/stores", label: "Lojas" },
-  { href: "/dashboard/orders", label: "Pedidos" },
-  { href: "/dashboard/deliveries", label: "Entregas" },
-  { href: "/dashboard/payments", label: "Pagamentos" },
-  { href: "/dashboard/plans", label: "Planos" },
-  { href: "/dashboard/badges", label: "Selos" },
-  { href: "/dashboard/promotions", label: "Promocoes" },
-  { href: "/dashboard/coupons", label: "Cupons" },
-  { href: "/dashboard/contracts", label: "Contratos" },
-  { href: "/dashboard/notifications", label: "Notificacoes" },
-  { href: "/dashboard/settings", label: "Configuracoes" },
+const navGroups = [
+  {
+    label: "Principal",
+    items: [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/dashboard/approvals", label: "Aprovações" },
+    ],
+  },
+  {
+    label: "Gestão",
+    items: [
+      { href: "/dashboard/users", label: "Usuários" },
+      { href: "/dashboard/stores", label: "Lojas" },
+      { href: "/dashboard/orders", label: "Pedidos" },
+      { href: "/dashboard/deliveries", label: "Entregas" },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { href: "/dashboard/payments", label: "Pagamentos" },
+      { href: "/dashboard/plans", label: "Planos" },
+    ],
+  },
+  {
+    label: "Plataforma",
+    items: [
+      { href: "/dashboard/badges", label: "Selos" },
+      { href: "/dashboard/promotions", label: "Promoções" },
+      { href: "/dashboard/coupons", label: "Cupons" },
+      { href: "/dashboard/contracts", label: "Contratos" },
+      { href: "/dashboard/notifications", label: "Notificações" },
+      { href: "/dashboard/settings", label: "Configurações" },
+    ],
+  },
 ];
 
 export default function DashboardLayout({
@@ -119,19 +139,26 @@ export default function DashboardLayout({
           </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                pathname === item.href
-                  ? "bg-purple-600/20 text-purple-400 font-semibold"
-                  : "text-gray-300 hover:bg-gray-700/50"
-              }`}
-            >
-              <span>{item.label}</span>
-            </Link>
+        <nav className="flex-1 px-4 pt-6 pb-4 space-y-5 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <p className="px-4 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{group.label}</p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
+                      pathname === item.href
+                        ? "bg-purple-600/20 text-purple-400 font-semibold"
+                        : "text-gray-300 hover:bg-gray-700/50"
+                    }`}
+                  >
+                    <span className="text-sm">{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -153,19 +180,26 @@ export default function DashboardLayout({
           <p className="text-xs text-gray-500 mt-1 text-center">Super Admin</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                pathname === item.href
-                  ? "bg-purple-600/20 text-purple-400 font-semibold"
-                  : "text-gray-300 hover:bg-gray-700/50"
-              }`}
-            >
-              <span>{item.label}</span>
-            </Link>
+        <nav className="flex-1 px-4 pt-6 pb-4 space-y-5 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <p className="px-4 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{group.label}</p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
+                      pathname === item.href
+                        ? "bg-purple-600/20 text-purple-400 font-semibold"
+                        : "text-gray-300 hover:bg-gray-700/50"
+                    }`}
+                  >
+                    <span className="text-sm">{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -180,7 +214,7 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <main className="flex-1 p-4 md:p-8 pt-20 md:pt-0 overflow-auto">
+      <main className="flex-1 p-4 md:px-10 md:py-8 pt-20 md:pt-8 overflow-auto">
         {children}
       </main>
     </div>

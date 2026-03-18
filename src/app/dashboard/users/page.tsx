@@ -4,6 +4,15 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_APP_USERS, GET_ALL_VENDOR_USERS, UPDATE_APP_USER_ROLE, TOGGLE_APP_USER_ACTIVE, TOGGLE_VENDOR_USER_ACTIVE } from "@/lib/graphql";
 import { useState } from "react";
 
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer" onClick={onClose}>
+      <button onClick={onClose} className="absolute top-4 right-4 text-white bg-white/20 hover:bg-white/30 rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold transition cursor-pointer">&times;</button>
+      <img src={src} alt={alt} className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
+    </div>
+  );
+}
+
 const roleLabels: Record<string, string> = {
   CUSTOMER: "Cliente",
   VENDOR: "Vendedor",
@@ -28,6 +37,7 @@ export default function UsersPage() {
   const [toggleVendorActive] = useMutation(TOGGLE_VENDOR_USER_ACTIVE);
   const [filter, setFilter] = useState("");
   const [tab, setTab] = useState<Tab>("customers");
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
   const allAppUsers = appData?.allAppUsers || [];
   const vendorUsers = vendorData?.allVendorUsers || [];
@@ -77,6 +87,7 @@ export default function UsersPage() {
 
   return (
     <div>
+      {lightbox && <ImageLightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
       <h1 className="text-2xl font-bold text-white mb-6">Usuarios ({totalCount})</h1>
 
       {/* Tabs */}
@@ -139,9 +150,20 @@ export default function UsersPage() {
                 <>
                   <p className="text-gray-500">CPF: {user.cpf || "-"}</p>
                   <p className="text-gray-500">Veiculo: {user.vehicleType || "-"} {user.vehiclePlate ? `(${user.vehiclePlate})` : ""}</p>
-                  {user.identityPhotoUrl && (
-                    <img src={user.identityPhotoUrl} alt="Identidade" className="w-20 h-20 object-cover rounded-lg border border-gray-600 mt-1" />
-                  )}
+                  <div className="flex gap-2 mt-1">
+                    {user.profilePhotoUrl && (
+                      <div>
+                        <p className="text-gray-600 text-[10px] mb-0.5">Rosto</p>
+                        <img src={user.profilePhotoUrl} alt="Rosto" onClick={() => setLightbox({ src: user.profilePhotoUrl, alt: "Rosto" })} className="w-20 h-20 object-cover rounded-lg border border-gray-600 cursor-pointer hover:opacity-80 hover:border-purple-500 transition" />
+                      </div>
+                    )}
+                    {user.identityPhotoUrl && (
+                      <div>
+                        <p className="text-gray-600 text-[10px] mb-0.5">Documento</p>
+                        <img src={user.identityPhotoUrl} alt="Documento" onClick={() => setLightbox({ src: user.identityPhotoUrl, alt: "Documento" })} className="w-20 h-20 object-cover rounded-lg border border-gray-600 cursor-pointer hover:opacity-80 hover:border-purple-500 transition" />
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
               {tab === "vendors" && (
