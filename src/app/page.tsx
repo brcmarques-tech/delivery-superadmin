@@ -17,7 +17,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      const { data } = await login({ variables: { input: { email, password } } });
+      const { data } = await login({ variables: { input: { email, password }, forceLogin: true } });
       if (data.loginApp.user.role !== "SUPERADMIN") {
         setError("Acesso permitido apenas para Super Admin");
         return;
