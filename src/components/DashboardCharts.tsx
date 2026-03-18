@@ -119,7 +119,7 @@ export default function DashboardCharts({
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number, name: string) => [value, name]}
+                formatter={(value, name) => [value, name]}
                 contentStyle={{ backgroundColor: "#111827", border: "1px solid #374151", borderRadius: 8, fontSize: 12 }}
                 itemStyle={{ color: "#d1d5db" }}
               />
