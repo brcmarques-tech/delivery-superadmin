@@ -176,7 +176,7 @@ export default function SettingsPage() {
         {showForm && (
           <form
             onSubmit={handleRegister}
-            className="bg-gray-800 rounded-2xl border border-gray-700 p-6 mb-6"
+            className="bg-gray-800 rounded-2xl border border-gray-700 p-6 mb-6 max-h-[70vh] overflow-y-auto"
           >
             <h3 className="text-white font-semibold mb-4">Cadastrar novo Super Admin</h3>
 

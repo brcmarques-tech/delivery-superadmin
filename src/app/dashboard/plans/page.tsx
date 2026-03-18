@@ -186,7 +186,7 @@ export default function PlansPage() {
                 &#10005;
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 pb-4">
               <div>
                 <label className="text-xs text-gray-400">Preco mensal (R$) — altera os outros automaticamente</label>
                 <input type="number" step="0.01" value={editForm.monthlyPrice} onChange={(e) => autoCalcPrices(parseFloat(e.target.value) || 0)} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-purple-500" />

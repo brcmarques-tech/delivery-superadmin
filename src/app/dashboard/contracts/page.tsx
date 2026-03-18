@@ -611,8 +611,7 @@ export default function ContractsPage() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={24}
-              className="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-xl p-4 text-sm leading-relaxed focus:outline-none focus:border-purple-500 resize-y"
+              className="w-full bg-gray-900 text-gray-200 border border-gray-700 rounded-xl p-4 text-sm leading-relaxed focus:outline-none focus:border-purple-500 resize-y min-h-[200px] md:min-h-[500px]"
               placeholder="Cole ou escreva o contrato aqui..."
             />
           </>

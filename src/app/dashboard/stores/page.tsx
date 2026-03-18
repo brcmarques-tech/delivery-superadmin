@@ -111,7 +111,7 @@ export default function StoresPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-gray-400 mb-2 block">Nivel</label>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                   {LEVELS.map((lvl) => {
                     const b = BADGE_CONFIG[lvl];
                     return (
@@ -165,7 +165,7 @@ export default function StoresPage() {
       {/* Delete confirmation modal */}
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeDeleteModal}>
-          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm mx-4 max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
             {deleteSuccess ? (
               <>
                 <h3 className="text-lg font-bold text-green-400 mb-2">Email enviado!</h3>

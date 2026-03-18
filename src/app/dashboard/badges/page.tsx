@@ -315,7 +315,7 @@ export default function BadgesPage() {
       {/* ─── Prize Modal ─── */}
       {prizeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setPrizeModal(null)}>
-          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-white">Conceder Selo</h3>
@@ -327,7 +327,7 @@ export default function BadgesPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-gray-400 mb-2 block">Nivel do selo</label>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                   {(["NONE", ...LEVELS] as const).map((lvl) => {
                     const b = BADGE_UI[lvl];
                     return (

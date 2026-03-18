@@ -130,7 +130,7 @@ export default function DeliveriesPage() {
         {/* Taxa de entrega */}
         <div className="mb-4">
           <p className="text-xs text-gray-500 mb-2">Taxa de entrega (por distância)</p>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-gray-300 text-sm">Base:</label>
               <span className="text-gray-400">R$</span>
@@ -158,7 +158,7 @@ export default function DeliveriesPage() {
         {/* Comissão */}
         <div className="mb-4 pt-4 border-t border-gray-700">
           <p className="text-xs text-gray-500 mb-2">Comissão da plataforma sobre entregas</p>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-gray-300 text-sm">Percentual:</label>
               <input type="number" step="0.1" min="0" max="100" value={commissionInput} onChange={(e) => setCommissionInput(e.target.value)}
@@ -176,7 +176,7 @@ export default function DeliveriesPage() {
         {/* Pedido mínimo plataforma */}
         <div className="pt-4 border-t border-gray-700">
           <p className="text-xs text-gray-500 mb-2">Pedido mínimo (entregadores do app)</p>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-gray-300 text-sm">Valor mínimo:</label>
               <span className="text-gray-400">R$</span>

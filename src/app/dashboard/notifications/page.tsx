@@ -121,7 +121,7 @@ export default function NotificationsPage() {
               {f === "all" ? "Todos" : f === "success" ? "Enviados" : "Falharam"}
             </button>
           ))}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
             <label className="text-xs text-gray-500">De:</label>
             <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
               className="text-xs px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500" />
