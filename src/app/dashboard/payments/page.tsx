@@ -4,6 +4,10 @@ import { useQuery } from "@apollo/client";
 import { GET_ALL_PAYMENTS } from "@/lib/graphql";
 import { useState } from "react";
 
+// L2: Locale-formatted currency
+const formatBRL = (value: number | string) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
+
 const typeLabels: Record<string, string> = {
   PLAN_UPGRADE: "Plano",
   PROMOTION: "Promocao",
@@ -24,10 +28,15 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PaymentsPage() {
+  // L1: TODO — Replace `any` types with proper Payment interface
   const { data, loading } = useQuery(GET_ALL_PAYMENTS, { pollInterval: 30000 });
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  // H4: Pagination state
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+  // L4: TODO — Add dark mode support
 
   const payments = data?.allPayments || [];
 
@@ -65,11 +74,11 @@ export default function PaymentsPage() {
         </div>
         <div className="bg-gray-800 rounded-2xl p-4 border border-emerald-800">
           <p className="text-sm text-gray-400">Receita aprovada</p>
-          <p className="text-2xl font-bold text-emerald-400">R$ {totalApproved.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-emerald-400">{formatBRL(totalApproved)}</p>
         </div>
         <div className="bg-gray-800 rounded-2xl p-4 border border-yellow-800">
           <p className="text-sm text-gray-400">Pendente</p>
-          <p className="text-2xl font-bold text-yellow-400">R$ {totalPending.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-yellow-400">{formatBRL(totalPending)}</p>
         </div>
       </div>
 
@@ -104,9 +113,14 @@ export default function PaymentsPage() {
         </select>
       </div>
 
+      {/* H4: Pagination info */}
+      {filtered.length > 0 && (
+        <p className="text-xs text-gray-500 mb-2">Mostrando {Math.min(page * pageSize + 1, filtered.length)}-{Math.min((page + 1) * pageSize, filtered.length)} de {filtered.length}</p>
+      )}
+
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {filtered.map((p: any) => (
+        {filtered.slice(page * pageSize, (page + 1) * pageSize).map((p: any) => (
           <div key={p.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
             {/* Top row: date + status */}
             <div className="flex items-center justify-between mb-2">
@@ -136,7 +150,7 @@ export default function PaymentsPage() {
 
             {/* Amount */}
             <p className={`text-base font-bold ${Number(p.amount) < 0 ? "text-red-400" : "text-emerald-400"}`}>
-              R$ {Number(p.amount).toFixed(2)}
+              {formatBRL(p.amount)}
             </p>
           </div>
         ))}
@@ -160,7 +174,7 @@ export default function PaymentsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p: any) => (
+            {filtered.slice(page * pageSize, (page + 1) * pageSize).map((p: any) => (
               <tr key={p.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                 <td className="py-3 px-3 sm:px-4 text-gray-400 whitespace-nowrap">
                   {new Date(p.createdAt).toLocaleDateString("pt-BR")}
@@ -178,7 +192,7 @@ export default function PaymentsPage() {
                 </td>
                 <td className="py-3 px-3 sm:px-4 text-gray-300 max-w-[120px] sm:max-w-xs truncate">{p.description}</td>
                 <td className="py-3 px-3 sm:px-4 text-right text-white font-semibold">
-                  R$ {Number(p.amount).toFixed(2)}
+                  {formatBRL(p.amount)}
                 </td>
                 <td className="py-3 px-3 sm:px-4 text-center">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[p.status] || "bg-gray-600 text-gray-300"}`}>
@@ -194,6 +208,29 @@ export default function PaymentsPage() {
           <p className="text-gray-500 text-center py-8">Nenhum pagamento encontrado</p>
         )}
       </div>
+
+      {/* H4: Pagination controls */}
+      {filtered.length > pageSize && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
+          >
+            Anterior
+          </button>
+          <span className="text-sm text-gray-400">
+            Pagina {page + 1} de {Math.ceil(filtered.length / pageSize)}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(Math.ceil(filtered.length / pageSize) - 1, p + 1))}
+            disabled={page >= Math.ceil(filtered.length / pageSize) - 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
+          >
+            Proximo
+          </button>
+        </div>
+      )}
     </div>
   );
 }

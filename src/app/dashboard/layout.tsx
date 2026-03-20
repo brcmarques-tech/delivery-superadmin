@@ -2,41 +2,84 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+// ─── Permission context (C1) ───
+type PermissionsMap = Record<string, boolean>;
+
+const PermissionContext = createContext<PermissionsMap>({});
+
+export function usePermissions() {
+  return useContext(PermissionContext);
+}
+
+/** Map route segments to permission keys */
+const ROUTE_PERMISSION: Record<string, string> = {
+  "/dashboard": "dashboard",
+  "/dashboard/approvals": "approvals",
+  "/dashboard/users": "users",
+  "/dashboard/stores": "stores",
+  "/dashboard/orders": "orders",
+  "/dashboard/deliveries": "deliveries",
+  "/dashboard/payments": "payments",
+  "/dashboard/plans": "plans",
+  "/dashboard/badges": "badges",
+  "/dashboard/promotions": "promotions",
+  "/dashboard/coupons": "coupons",
+  "/dashboard/contracts": "contracts",
+  "/dashboard/notifications": "notifications",
+  "/dashboard/settings": "settings",
+};
+
+function parsePermissions(permStr: string | null | undefined): PermissionsMap {
+  if (!permStr) {
+    // null = master admin, all permissions
+    const all: PermissionsMap = {};
+    Object.values(ROUTE_PERMISSION).forEach((p) => (all[p] = true));
+    return all;
+  }
+  try {
+    return JSON.parse(permStr);
+  } catch {
+    const all: PermissionsMap = {};
+    Object.values(ROUTE_PERMISSION).forEach((p) => (all[p] = true));
+    return all;
+  }
+}
 
 const navGroups = [
   {
     label: "Principal",
     items: [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/dashboard/approvals", label: "Aprovações" },
+      { href: "/dashboard", label: "Dashboard", perm: "dashboard" },
+      { href: "/dashboard/approvals", label: "Aprovações", perm: "approvals" },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { href: "/dashboard/users", label: "Usuários" },
-      { href: "/dashboard/stores", label: "Lojas" },
-      { href: "/dashboard/orders", label: "Pedidos" },
-      { href: "/dashboard/deliveries", label: "Entregas" },
+      { href: "/dashboard/users", label: "Usuários", perm: "users" },
+      { href: "/dashboard/stores", label: "Lojas", perm: "stores" },
+      { href: "/dashboard/orders", label: "Pedidos", perm: "orders" },
+      { href: "/dashboard/deliveries", label: "Entregas", perm: "deliveries" },
     ],
   },
   {
     label: "Financeiro",
     items: [
-      { href: "/dashboard/payments", label: "Pagamentos" },
-      { href: "/dashboard/plans", label: "Planos" },
+      { href: "/dashboard/payments", label: "Pagamentos", perm: "payments" },
+      { href: "/dashboard/plans", label: "Planos", perm: "plans" },
     ],
   },
   {
     label: "Plataforma",
     items: [
-      { href: "/dashboard/badges", label: "Selos" },
-      { href: "/dashboard/promotions", label: "Promoções" },
-      { href: "/dashboard/coupons", label: "Cupons" },
-      { href: "/dashboard/contracts", label: "Contratos" },
-      { href: "/dashboard/notifications", label: "Notificações" },
-      { href: "/dashboard/settings", label: "Configurações" },
+      { href: "/dashboard/badges", label: "Selos", perm: "badges" },
+      { href: "/dashboard/promotions", label: "Promoções", perm: "promotions" },
+      { href: "/dashboard/coupons", label: "Cupons", perm: "coupons" },
+      { href: "/dashboard/contracts", label: "Contratos", perm: "contracts" },
+      { href: "/dashboard/notifications", label: "Notificações", perm: "notifications" },
+      { href: "/dashboard/settings", label: "Configurações", perm: "settings" },
     ],
   },
 ];
@@ -48,7 +91,8 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; role?: string; permissions?: string | null } | null>(null);
+  const [permissions, setPermissions] = useState<PermissionsMap>({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -57,7 +101,15 @@ export default function DashboardLayout({
       router.push("/");
       return;
     }
-    setUser(JSON.parse(stored));
+    const storedUser = JSON.parse(stored);
+    // M1: Verify SUPERADMIN role client-side
+    if (storedUser.role !== "SUPERADMIN") {
+      localStorage.clear();
+      router.push("/");
+      return;
+    }
+    setUser(storedUser);
+    setPermissions(parsePermissions(storedUser.permissions));
   }, [router]);
 
   useEffect(() => {
@@ -140,26 +192,30 @@ export default function DashboardLayout({
         </div>
 
         <nav className="flex-1 px-4 pt-6 pb-4 space-y-5 overflow-y-auto">
-          {navGroups.map((group) => (
-            <div key={group.label}>
-              <p className="px-4 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{group.label}</p>
-              <div className="space-y-0.5">
-                {group.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
-                      pathname === item.href
-                        ? "bg-purple-600/20 text-purple-400 font-semibold"
-                        : "text-gray-300 hover:bg-gray-700/50"
-                    }`}
-                  >
-                    <span className="text-sm">{item.label}</span>
-                  </Link>
-                ))}
+          {navGroups.map((group) => {
+            const visibleItems = group.items.filter((item) => permissions[item.perm] !== false);
+            if (visibleItems.length === 0) return null;
+            return (
+              <div key={group.label}>
+                <p className="px-4 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{group.label}</p>
+                <div className="space-y-0.5">
+                  {visibleItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
+                        pathname === item.href
+                          ? "bg-purple-600/20 text-purple-400 font-semibold"
+                          : "text-gray-300 hover:bg-gray-700/50"
+                      }`}
+                    >
+                      <span className="text-sm">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-gray-700">
@@ -181,26 +237,30 @@ export default function DashboardLayout({
         </div>
 
         <nav className="flex-1 px-4 pt-6 pb-4 space-y-5 overflow-y-auto">
-          {navGroups.map((group) => (
-            <div key={group.label}>
-              <p className="px-4 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{group.label}</p>
-              <div className="space-y-0.5">
-                {group.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
-                      pathname === item.href
-                        ? "bg-purple-600/20 text-purple-400 font-semibold"
-                        : "text-gray-300 hover:bg-gray-700/50"
-                    }`}
-                  >
-                    <span className="text-sm">{item.label}</span>
-                  </Link>
-                ))}
+          {navGroups.map((group) => {
+            const visibleItems = group.items.filter((item) => permissions[item.perm] !== false);
+            if (visibleItems.length === 0) return null;
+            return (
+              <div key={group.label}>
+                <p className="px-4 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{group.label}</p>
+                <div className="space-y-0.5">
+                  {visibleItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
+                        pathname === item.href
+                          ? "bg-purple-600/20 text-purple-400 font-semibold"
+                          : "text-gray-300 hover:bg-gray-700/50"
+                      }`}
+                    >
+                      <span className="text-sm">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-gray-700">
@@ -215,7 +275,23 @@ export default function DashboardLayout({
       </aside>
 
       <main className="flex-1 p-4 md:px-10 md:py-8 pt-20 md:pt-8 overflow-auto">
-        {children}
+        <PermissionContext.Provider value={permissions}>
+          {/* C1: Check permission for current page */}
+          {(() => {
+            const permKey = ROUTE_PERMISSION[pathname];
+            if (permKey && permissions[permKey] === false) {
+              return (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-red-400 mb-2">Acesso nao autorizado</p>
+                    <p className="text-gray-500">Voce nao tem permissao para acessar esta pagina.</p>
+                  </div>
+                </div>
+              );
+            }
+            return children;
+          })()}
+        </PermissionContext.Provider>
       </main>
     </div>
   );

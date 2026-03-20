@@ -47,6 +47,10 @@ const statusChartColors: Record<string, string> = {
   CANCELLED: "#ef4444",
 };
 
+// L2: Locale-formatted currency
+const formatBRL = (value: number | string) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
+
 export default function DashboardPage() {
   const { data, loading } = useQuery(GET_DASHBOARD_STATS, { pollInterval: 30000 });
   const stats = data?.dashboardStats;
@@ -68,8 +72,9 @@ export default function DashboardPage() {
         <StatCard label="Usuários" value={stats.totalUsers} />
         <StatCard label="Lojas" value={stats.totalStores} />
         <StatCard label="Pedidos" value={stats.totalOrders} />
-        <StatCard label="Receita Total" value={`R$ ${Number(stats.totalRevenue).toFixed(2)}`} color="text-emerald-400" />
-        <StatCard label="Receita Plataforma" value={`R$ ${Number(stats.platformRevenue).toFixed(2)}`} color="text-purple-400" border="border-purple-600" sub="Planos + Promoções" />
+        <StatCard label="Receita Total" value={formatBRL(stats.totalRevenue)} color="text-emerald-400" />
+        {/* M3: Clarified label for platformRevenue breakdown */}
+        <StatCard label="Receita Plataforma" value={formatBRL(stats.platformRevenue)} color="text-purple-400" border="border-purple-600" sub="Planos + Promocoes + Comissoes" />
         <StatCard label="Aprovações Pendentes" value={stats.pendingApprovals} color={stats.pendingApprovals > 0 ? "text-orange-400" : "text-white"} border={stats.pendingApprovals > 0 ? "border-orange-600" : "border-gray-700"} />
       </div>
 
@@ -79,7 +84,7 @@ export default function DashboardPage() {
         <StatCard label="Total Entregas" value={stats.totalDeliveries} />
         <StatCard label="Entregas Ativas" value={stats.activeDeliveries} color="text-yellow-400" border="border-yellow-800" />
         <StatCard label="Entregas Concluídas" value={stats.completedDeliveries} color="text-emerald-400" border="border-emerald-800" />
-        <StatCard label="Ticket Médio" value={`R$ ${Number(stats.avgTicket).toFixed(2)}`} color="text-blue-400" border="border-blue-800" />
+        <StatCard label="Ticket Médio" value={formatBRL(stats.avgTicket)} color="text-blue-400" border="border-blue-800" />
         <StatCard label="Taxa Cancelamento" value={`${Number(stats.cancellationRate).toFixed(1)}%`} color={stats.cancellationRate > 10 ? "text-red-400" : "text-green-400"} border={stats.cancellationRate > 10 ? "border-red-800" : "border-green-800"} />
       </div>
 
@@ -111,7 +116,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-gray-500 truncate">{o.customerName} — {o.storeName}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-emerald-400">R$ {Number(o.total).toFixed(2)}</p>
+                  <p className="text-sm font-semibold text-emerald-400">{formatBRL(o.total)}</p>
                   <p className="text-[10px] text-gray-500">{new Date(o.createdAt).toLocaleString("pt-BR")}</p>
                 </div>
               </div>
@@ -140,7 +145,7 @@ export default function DashboardPage() {
                   <p className="text-white font-medium text-sm truncate">{s.storeName}</p>
                   <p className="text-xs text-gray-500">{s.orderCount} pedidos</p>
                 </div>
-                <span className="text-emerald-400 font-semibold text-sm shrink-0">R$ {Number(s.revenue).toFixed(2)}</span>
+                <span className="text-emerald-400 font-semibold text-sm shrink-0">{formatBRL(s.revenue)}</span>
               </div>
             ))}
             {stats.topStores.length === 0 && (
