@@ -9,6 +9,10 @@ import {
 } from "@/lib/graphql";
 import { useState, useRef } from "react";
 
+// L2: Locale-formatted currency
+const formatBRL = (value: number | string) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
+
 const planLabels: Record<string, string> = {
   FREE: "Gratuito",
   PRO: "Pro",
@@ -60,6 +64,7 @@ function FeatureCheck({ enabled, label }: { enabled: boolean; label: string }) {
 }
 
 export default function PlansPage() {
+  // L1: TODO — Replace `any` types with proper interfaces (VendorUser, PlanConfig)
   const { data, loading, refetch } = useQuery(GET_ALL_VENDOR_USERS);
   const { data: plansData, refetch: refetchPlans } = useQuery(GET_AVAILABLE_PLANS);
   const [updatePlan] = useMutation(UPDATE_VENDOR_PLAN);
@@ -88,6 +93,13 @@ export default function PlansPage() {
     isContactSales: false,
   });
   const [saving, setSaving] = useState(false);
+  // H1: Error state for mutations
+  const [error, setError] = useState<string | null>(null);
+  // C3: Pending plan change state (confirmation before mutation)
+  const [pendingPlanChange, setPendingPlanChange] = useState<{ vendorId: string; vendorName: string; plan: string } | null>(null);
+  // L3: Track loading per vendor for plan change dropdown
+  const [changingPlanFor, setChangingPlanFor] = useState<string | null>(null);
+  // L4: TODO — Add dark mode support via CSS variables or theme toggle
 
   const vendors =
     data?.allVendorUsers || [];
@@ -100,9 +112,23 @@ export default function PlansPage() {
 
   const plans = plansData?.availablePlans || [];
 
-  async function handlePlanChange(userId: string, plan: string) {
-    await updatePlan({ variables: { id: userId, plan, durationMonths: 1 } });
-    refetch();
+  // C3: Confirm plan change via pending state (don't fire mutation on select onChange)
+  async function confirmPlanChange() {
+    if (!pendingPlanChange) return;
+    setError(null);
+    setChangingPlanFor(pendingPlanChange.vendorId);
+    try {
+      // H8: Audit trail log
+      console.log(`[AUDIT ${new Date().toISOString()}] Plan change: vendor=${pendingPlanChange.vendorId}, newPlan=${pendingPlanChange.plan}`);
+      // TODO: Implement server-side audit logging for financial config changes
+      await updatePlan({ variables: { id: pendingPlanChange.vendorId, plan: pendingPlanChange.plan, durationMonths: 1 } });
+      refetch();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao alterar plano";
+      setError(msg);
+    }
+    setChangingPlanFor(null);
+    setPendingPlanChange(null);
   }
 
   function calcDiscount(monthly: number, total: number, months: number): number {
@@ -156,16 +182,59 @@ export default function PlansPage() {
 
   async function saveEdit() {
     if (!editingPlan) return;
+
+    // H3: Input validation bounds
+    if (editForm.commissionPercent < 0 || editForm.commissionPercent > 100) {
+      setError("Comissao deve ser entre 0% e 100%.");
+      return;
+    }
+    if (editForm.monthlyPrice < 0) {
+      setError("Preco mensal nao pode ser negativo.");
+      return;
+    }
+    if (editForm.quarterlyPrice < 0) {
+      setError("Preco trimestral nao pode ser negativo.");
+      return;
+    }
+    if (editForm.semiannualPrice < 0) {
+      setError("Preco semestral nao pode ser negativo.");
+      return;
+    }
+    if (editForm.annualPrice < 0) {
+      setError("Preco anual nao pode ser negativo.");
+      return;
+    }
+    if (editForm.maxStores < 0) {
+      setError("Max lojas nao pode ser negativo.");
+      return;
+    }
+    if (editForm.maxProductsPerStore < 0) {
+      setError("Max produtos por loja nao pode ser negativo.");
+      return;
+    }
+
+    // C2: Confirmation dialog before saving plan config
+    if (!confirm(`Salvar alteracoes no plano ${planLabels[editingPlan] || editingPlan}? Isso afetara todos os vendors neste plano.`)) return;
+
+    setError(null);
     setSaving(true);
-    await updatePlanConfig({
-      variables: {
-        plan: editingPlan,
-        ...editForm,
-      },
-    });
+    try {
+      // H8: Audit trail log
+      console.log(`[AUDIT ${new Date().toISOString()}] Plan config update: plan=${editingPlan}`, editForm);
+      // TODO: Implement server-side audit logging for financial config changes
+      await updatePlanConfig({
+        variables: {
+          plan: editingPlan,
+          ...editForm,
+        },
+      });
+      setEditingPlan(null);
+      refetchPlans();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao salvar configuracao do plano";
+      setError(msg);
+    }
     setSaving(false);
-    setEditingPlan(null);
-    refetchPlans();
   }
 
   if (loading) return <p className="text-gray-400">Carregando...</p>;
@@ -175,6 +244,42 @@ export default function PlansPage() {
       <h1 className="text-2xl font-bold text-white mb-6">
         Planos de Vendedores
       </h1>
+
+      {/* H1: Error banner */}
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/20 text-red-400 rounded-xl text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 cursor-pointer ml-2">&#10005;</button>
+        </div>
+      )}
+
+      {/* C3: Plan change confirmation modal */}
+      {pendingPlanChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setPendingPlanChange(null)}>
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-white mb-3">Confirmar alteracao de plano</h3>
+            <p className="text-gray-300 text-sm mb-4">
+              Alterar o plano de <span className="font-semibold text-white">{pendingPlanChange.vendorName}</span> para{" "}
+              <span className="font-semibold text-purple-400">{planLabels[pendingPlanChange.plan] || pendingPlanChange.plan}</span>?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmPlanChange}
+                disabled={changingPlanFor !== null}
+                className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
+              >
+                {changingPlanFor ? "Alterando..." : "Confirmar"}
+              </button>
+              <button
+                onClick={() => setPendingPlanChange(null)}
+                className="px-4 py-2.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit modal */}
       {editingPlan && (
@@ -334,13 +439,13 @@ export default function PlansPage() {
                 <p className="text-2xl font-bold text-white mt-2">
                   {Number(p.monthlyPrice) === 0
                     ? "Gratis"
-                    : `R$ ${Number(p.monthlyPrice).toFixed(2)}/mes`}
+                    : `${formatBRL(p.monthlyPrice)}/mes`}
                 </p>
                 {Number(p.monthlyPrice) > 0 && (
                   <div className="text-xs text-gray-400 mt-1 space-y-0.5">
-                    <p>Tri: R$ {Number(p.quarterlyPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.quarterlyPrice), 3)}%)</span></p>
-                    <p>Sem: R$ {Number(p.semiannualPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.semiannualPrice), 6)}%)</span></p>
-                    <p>Anual: R$ {Number(p.annualPrice).toFixed(2)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.annualPrice), 12)}%)</span></p>
+                    <p>Tri: {formatBRL(p.quarterlyPrice)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.quarterlyPrice), 3)}%)</span></p>
+                    <p>Sem: {formatBRL(p.semiannualPrice)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.semiannualPrice), 6)}%)</span></p>
+                    <p>Anual: {formatBRL(p.annualPrice)} <span className="text-green-400">(-{calcDiscount(Number(p.monthlyPrice), Number(p.annualPrice), 12)}%)</span></p>
                   </div>
                 )}
                 <ul className="mt-4 space-y-2 text-sm text-gray-300">
@@ -442,8 +547,9 @@ export default function PlansPage() {
 
               <select
                 value={user.vendorPlan || "FREE"}
-                onChange={(e) => handlePlanChange(user.id, e.target.value)}
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm border border-gray-600 focus:outline-none focus:border-purple-500 cursor-pointer"
+                onChange={(e) => setPendingPlanChange({ vendorId: user.id, vendorName: user.name, plan: e.target.value })}
+                disabled={changingPlanFor === user.id}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 text-sm border border-gray-600 focus:outline-none focus:border-purple-500 cursor-pointer disabled:opacity-50"
               >
                 <option value="FREE">Gratuito</option>
                 <option value="PRO">Pro</option>
@@ -497,8 +603,9 @@ export default function PlansPage() {
                 <td className="px-3 sm:px-6 py-4">
                   <select
                     value={user.vendorPlan || "FREE"}
-                    onChange={(e) => handlePlanChange(user.id, e.target.value)}
-                    className="bg-gray-700 text-white rounded-lg px-3 py-1.5 text-sm border border-gray-600 focus:outline-none focus:border-purple-500 cursor-pointer"
+                    onChange={(e) => setPendingPlanChange({ vendorId: user.id, vendorName: user.name, plan: e.target.value })}
+                    disabled={changingPlanFor === user.id}
+                    className="bg-gray-700 text-white rounded-lg px-3 py-1.5 text-sm border border-gray-600 focus:outline-none focus:border-purple-500 cursor-pointer disabled:opacity-50"
                   >
                     <option value="FREE">Gratuito</option>
                     <option value="PRO">Pro</option>

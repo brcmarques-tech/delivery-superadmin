@@ -10,7 +10,12 @@ import {
 } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 
+// L2: Locale-formatted currency
+const formatBRL = (value: number | string) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
+
 export default function PromotionsPage() {
+  // L1: TODO — Replace `any` types with proper Promotion interface
   const { data, loading, refetch } = useQuery(GET_ALL_PROMOTIONS);
   const { data: priceData, refetch: refetchPrice } = useQuery(GET_PROMO_PRICE_PER_DAY);
   const [toggleActive] = useMutation(TOGGLE_PROMOTION_ACTIVE);
@@ -20,6 +25,9 @@ export default function PromotionsPage() {
   const promotions = data?.allPromotions || [];
   const currentPrice = priceData?.promoPricePerDay ?? 1;
   const [priceInput, setPriceInput] = useState("");
+  // H1: Error state
+  const [error, setError] = useState<string | null>(null);
+  // L4: TODO — Add dark mode support
 
   useEffect(() => {
     if (priceData?.promoPricePerDay != null) {
@@ -28,21 +36,50 @@ export default function PromotionsPage() {
   }, [priceData]);
 
   async function handleToggleActive(id: string) {
-    await toggleActive({ variables: { id } });
-    refetch();
+    setError(null);
+    try {
+      await toggleActive({ variables: { id } });
+      refetch();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao alterar status da promocao");
+    }
   }
 
   async function handleMarkPaid(id: string) {
-    if (!confirm("Marcar como pago? A promoção ficará visível no app.")) return;
-    await markPaid({ variables: { id } });
-    refetch();
+    // M4: Payment verification — ask for payment reference/proof
+    const reference = prompt("Informe o comprovante ou referencia do pagamento:");
+    if (reference === null) return; // user cancelled
+    if (!reference.trim()) {
+      setError("E necessario informar uma referencia de pagamento.");
+      return;
+    }
+    if (!confirm("Marcar como pago? A promocao ficara visivel no app.")) return;
+    setError(null);
+    try {
+      // M4: Log payment reference client-side (API doesn't support reference field yet)
+      console.log(`[AUDIT ${new Date().toISOString()}] Promotion payment marked: id=${id}, reference=${reference.trim()}`);
+      // TODO: Pass payment reference to API when supported
+      await markPaid({ variables: { id } });
+      refetch();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao marcar como pago");
+    }
   }
 
   async function handleSavePrice() {
     const val = parseFloat(priceInput);
     if (isNaN(val) || val < 0) return;
-    await setPromoPrice({ variables: { price: val } });
-    refetchPrice();
+    // M5: Confirmation on promo price change
+    if (!confirm("Alterar preco de promocao por dia?")) return;
+    setError(null);
+    try {
+      // H8: Audit trail
+      console.log(`[AUDIT ${new Date().toISOString()}] Promo price per day changed: ${currentPrice} -> ${val}`);
+      await setPromoPrice({ variables: { price: val } });
+      refetchPrice();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar preco");
+    }
   }
 
   const pending = promotions.filter((p: any) => !p.isPaid);
@@ -55,6 +92,14 @@ export default function PromotionsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Promoções ({promotions.length})</h1>
       </div>
+
+      {/* H1: Error banner */}
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/20 text-red-400 rounded-xl text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 cursor-pointer ml-2">&#10005;</button>
+        </div>
+      )}
 
       {/* Config de preço por dia */}
       <div className="bg-gray-800 rounded-2xl border border-gray-700 p-5 mb-6">
@@ -79,7 +124,7 @@ export default function PromotionsPage() {
               {savingPrice ? "..." : "Salvar"}
             </button>
           </div>
-          <span className="text-gray-500 text-xs">Atual: R$ {currentPrice.toFixed(2)}/dia</span>
+          <span className="text-gray-500 text-xs">Atual: {formatBRL(currentPrice)}/dia</span>
         </div>
       </div>
 
@@ -101,15 +146,15 @@ export default function PromotionsPage() {
                     <h3 className="font-bold text-white truncate">{promo.title}</h3>
                     {promo.product && (
                       <p className="text-sm text-gray-400">
-                        {promo.product.name}: <span className="line-through">R$ {Number(promo.product.price).toFixed(2)}</span>{" "}
-                        <span className="text-green-400 font-semibold">R$ {Number(promo.promotionalPrice).toFixed(2)}</span>
+                        {promo.product.name}: <span className="line-through">{formatBRL(promo.product.price)}</span>{" "}
+                        <span className="text-green-400 font-semibold">{formatBRL(promo.promotionalPrice)}</span>
                       </p>
                     )}
                     <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
                       <span>{promo.store?.name}</span>
                       <span>{promo.store?.owner?.name}</span>
                       <span>{new Date(promo.startDate).toLocaleDateString("pt-BR")} - {new Date(promo.endDate).toLocaleDateString("pt-BR")}</span>
-                      <span className="text-yellow-400">Anúncio: R$ {Number(promo.adCost).toFixed(2)}</span>
+                      <span className="text-yellow-400">Anúncio: {formatBRL(promo.adCost)}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:flex-shrink-0">
@@ -166,15 +211,15 @@ export default function PromotionsPage() {
                   </div>
                   {promo.product && (
                     <p className="text-sm text-gray-400">
-                      {promo.product.name}: <span className="line-through">R$ {Number(promo.product.price).toFixed(2)}</span>{" "}
-                      <span className="text-green-400 font-semibold">R$ {Number(promo.promotionalPrice).toFixed(2)}</span>
+                      {promo.product.name}: <span className="line-through">{formatBRL(promo.product.price)}</span>{" "}
+                      <span className="text-green-400 font-semibold">{formatBRL(promo.promotionalPrice)}</span>
                     </p>
                   )}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
                     <span>{promo.store?.name}</span>
                     <span>{promo.store?.owner?.name}</span>
                     <span>{new Date(promo.startDate).toLocaleDateString("pt-BR")} - {new Date(promo.endDate).toLocaleDateString("pt-BR")}</span>
-                    <span>Anúncio: R$ {Number(promo.adCost).toFixed(2)}</span>
+                    <span>Anúncio: {formatBRL(promo.adCost)}</span>
                   </div>
                 </div>
                 <button
