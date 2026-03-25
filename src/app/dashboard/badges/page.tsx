@@ -65,36 +65,76 @@ export default function BadgesPage() {
 
   async function saveThresholds() {
     setSaving("thresholds");
-    await updateThresholds({ variables: { thresholds: JSON.stringify(thresholds) } });
-    showToast("Limites salvos!");
+    try {
+      console.log(`[AUDIT ${new Date().toISOString()}] Badge thresholds updated:`, thresholds);
+      await updateThresholds({ variables: { thresholds: JSON.stringify(thresholds) } });
+      showToast("Limites salvos!");
+      refetch();
+    } catch (err: unknown) {
+      showToast(`Erro: ${err instanceof Error ? err.message : "Erro ao salvar limites"}`);
+    }
     setSaving(null);
-    refetch();
   }
 
   async function savePoints() {
     setSaving("points");
-    await updatePoints({ variables: { points: JSON.stringify(points) } });
-    showToast("Pontuacao salva!");
+    try {
+      console.log(`[AUDIT ${new Date().toISOString()}] Badge points updated:`, points);
+      await updatePoints({ variables: { points: JSON.stringify(points) } });
+      showToast("Pontuacao salva!");
+      refetch();
+    } catch (err: unknown) {
+      showToast(`Erro: ${err instanceof Error ? err.message : "Erro ao salvar pontuacao"}`);
+    }
     setSaving(null);
-    refetch();
   }
 
   async function saveReward(level: string) {
+    const r = rewards[level] || {};
+    // M6: Bounds validation for badge rewards
+    if ((r.commissionReduction ?? 0) < 0 || (r.commissionReduction ?? 0) > 50) {
+      showToast("Erro: Reducao de comissao deve ser entre 0 e 50%");
+      return;
+    }
+    if ((r.subscriptionDiscount ?? 0) < 0 || (r.subscriptionDiscount ?? 0) > 50) {
+      showToast("Erro: Desconto na assinatura deve ser entre 0 e 50%");
+      return;
+    }
+    if ((r.freeTrialDays ?? 0) < 0 || (r.freeTrialDays ?? 0) > 30) {
+      showToast("Erro: Trial gratis deve ser entre 0 e 30 dias");
+      return;
+    }
+    if ((r.couponValue ?? 0) < 0 || (r.couponValue ?? 0) > 50) {
+      showToast("Erro: Cupom de desconto deve ser entre 0 e 50%");
+      return;
+    }
     setSaving(level);
-    await updateRewards({ variables: { level, rewards: JSON.stringify(rewards[level]) } });
-    showToast(`Recompensas ${BADGE_UI[level].label} salvas!`);
+    try {
+      // H8: Audit trail
+      console.log(`[AUDIT ${new Date().toISOString()}] Badge rewards updated: level=${level}`, r);
+      // TODO: Implement server-side audit logging for financial config changes
+      await updateRewards({ variables: { level, rewards: JSON.stringify(r) } });
+      showToast(`Recompensas ${BADGE_UI[level].label} salvas!`);
+      refetch();
+    } catch (err: unknown) {
+      showToast(`Erro: ${err instanceof Error ? err.message : "Erro ao salvar recompensas"}`);
+    }
     setSaving(null);
-    refetch();
   }
 
   async function grantPrize() {
     if (!prizeModal) return;
-    await setVerification({
-      variables: { storeId: prizeModal.id, level: prizeForm.level, score: prizeForm.score },
-    });
-    setPrizeModal(null);
-    showToast("Selo concedido!");
-    refetchStores();
+    try {
+      console.log(`[AUDIT ${new Date().toISOString()}] Badge granted: store=${prizeModal.id}, level=${prizeForm.level}, score=${prizeForm.score}`);
+      await setVerification({
+        variables: { storeId: prizeModal.id, level: prizeForm.level, score: prizeForm.score },
+      });
+      setPrizeModal(null);
+      showToast("Selo concedido!");
+      refetchStores();
+    } catch (err: unknown) {
+      showToast(`Erro: ${err instanceof Error ? err.message : "Erro ao conceder selo"}`);
+    }
   }
 
   const stores = storesData?.allStores || [];

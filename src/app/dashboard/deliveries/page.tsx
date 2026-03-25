@@ -11,7 +11,12 @@ import {
 } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 
+// L2: Locale-formatted currency
+const formatBRL = (value: number | string) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
+
 export default function DeliveriesPage() {
+  // L1: TODO — Replace `any` types with proper Delivery interface
   const { data, loading } = useQuery(GET_ALL_DELIVERIES, { pollInterval: 15000 });
   const { data: deliveryData, refetch: refetchDelivery } = useQuery(GET_DELIVERY_PRICES);
   const [setDeliveryPerKm, { loading: savingKm }] = useMutation(SET_DELIVERY_PRICE_PER_KM);
@@ -21,6 +26,12 @@ export default function DeliveriesPage() {
 
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  // H1: Error state
+  const [error, setError] = useState<string | null>(null);
+  // H6: Pagination state
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+  // L4: TODO — Add dark mode support
 
   const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;
   const currentBase = deliveryData?.deliveryBasePrice ?? 3;
@@ -41,29 +52,63 @@ export default function DeliveriesPage() {
   async function handleSaveDeliveryPerKm() {
     const val = parseFloat(perKmInput);
     if (isNaN(val) || val < 0) return;
-    await setDeliveryPerKm({ variables: { price: val } });
-    refetchDelivery();
+    // H2: Confirmation dialog
+    if (!confirm("Alterar preco por km da entrega? Isso afeta todos os novos pedidos.")) return;
+    setError(null);
+    try {
+      // H8: Audit trail
+      console.log(`[AUDIT ${new Date().toISOString()}] Delivery price per km changed: ${currentPerKm} -> ${val}`);
+      // TODO: Implement server-side audit logging for financial config changes
+      await setDeliveryPerKm({ variables: { price: val } });
+      refetchDelivery();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar preco por km");
+    }
   }
 
   async function handleSaveDeliveryBase() {
     const val = parseFloat(baseInput);
     if (isNaN(val) || val < 0) return;
-    await setDeliveryBase({ variables: { price: val } });
-    refetchDelivery();
+    // H2: Confirmation dialog
+    if (!confirm("Alterar preco base da entrega? Isso afeta todos os novos pedidos.")) return;
+    setError(null);
+    try {
+      console.log(`[AUDIT ${new Date().toISOString()}] Delivery base price changed: ${currentBase} -> ${val}`);
+      await setDeliveryBase({ variables: { price: val } });
+      refetchDelivery();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar preco base");
+    }
   }
 
   async function handleSaveCommission() {
     const val = parseFloat(commissionInput);
     if (isNaN(val) || val < 0 || val > 100) return;
-    await setDeliveryCommission({ variables: { percent: val } });
-    refetchDelivery();
+    // H2: Confirmation dialog
+    if (!confirm("Alterar comissao da plataforma? Isso afeta todos os novos pedidos.")) return;
+    setError(null);
+    try {
+      console.log(`[AUDIT ${new Date().toISOString()}] Delivery commission changed: ${currentCommission}% -> ${val}%`);
+      await setDeliveryCommission({ variables: { percent: val } });
+      refetchDelivery();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar comissao");
+    }
   }
 
   async function handleSaveMinOrder() {
     const val = parseFloat(minOrderInput);
     if (isNaN(val) || val < 0) return;
-    await setMinOrder({ variables: { price: val } });
-    refetchDelivery();
+    // H2: Confirmation dialog
+    if (!confirm("Alterar valor minimo de pedido? Isso afeta todos os novos pedidos.")) return;
+    setError(null);
+    try {
+      console.log(`[AUDIT ${new Date().toISOString()}] Minimum order changed: ${currentMinOrder} -> ${val}`);
+      await setMinOrder({ variables: { price: val } });
+      refetchDelivery();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar pedido minimo");
+    }
   }
 
   const deliveries = data?.allDeliveries || [];
@@ -108,6 +153,14 @@ export default function DeliveriesPage() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">Entregas ({deliveries.length})</h1>
 
+      {/* H1: Error banner */}
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/20 text-red-400 rounded-xl text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 cursor-pointer ml-2">&#10005;</button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
           <p className="text-sm text-gray-400">Total</p>
@@ -151,7 +204,7 @@ export default function DeliveriesPage() {
                 {savingKm ? "..." : "Salvar"}
               </button>
             </div>
-            <span className="text-gray-500 text-xs">Ex: 5km = R$ {(currentBase + 5 * currentPerKm).toFixed(2)}</span>
+            <span className="text-gray-500 text-xs">Ex: 5km = {formatBRL(currentBase + 5 * currentPerKm)}</span>
           </div>
         </div>
 
@@ -169,7 +222,7 @@ export default function DeliveriesPage() {
                 {savingCommission ? "..." : "Salvar"}
               </button>
             </div>
-            <span className="text-gray-500 text-xs">Atual: {currentCommission}% — Ex: entrega R$ 10,00 = R$ {(10 * currentCommission / 100).toFixed(2)} p/ plataforma</span>
+            <span className="text-gray-500 text-xs">Atual: {currentCommission}% — Ex: entrega R$ 10,00 = {formatBRL(10 * currentCommission / 100)} p/ plataforma</span>
           </div>
         </div>
 
@@ -187,7 +240,7 @@ export default function DeliveriesPage() {
                 {savingMinOrder ? "..." : "Salvar"}
               </button>
             </div>
-            <span className="text-gray-500 text-xs">Atual: R$ {currentMinOrder.toFixed(2)} — Lojas com entregadores do app não aceitam pedidos abaixo deste valor</span>
+            <span className="text-gray-500 text-xs">Atual: {formatBRL(currentMinOrder)} — Lojas com entregadores do app nao aceitam pedidos abaixo deste valor</span>
           </div>
         </div>
       </div>
@@ -212,8 +265,11 @@ export default function DeliveriesPage() {
         </select>
       </div>
 
+      {/* H6: Pagination info */}
+      <p className="text-xs text-gray-500 mb-2">Mostrando {Math.min(page * pageSize + 1, filtered.length)}-{Math.min((page + 1) * pageSize, filtered.length)} de {filtered.length}</p>
+
       <div className="space-y-4">
-        {filtered.map((d: any) => {
+        {filtered.slice(page * pageSize, (page + 1) * pageSize).map((d: any) => {
           const status = getStatus(d);
           return (
             <div key={d.id} className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700">
@@ -252,8 +308,8 @@ export default function DeliveriesPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-1 mt-3 text-xs text-gray-500">
-                <span>Taxa: R$ {Number(d.order?.deliveryFee || 0).toFixed(2)}</span>
-                <span>Total pedido: R$ {Number(d.order?.total || 0).toFixed(2)}</span>
+                <span>Taxa: {formatBRL(d.order?.deliveryFee || 0)}</span>
+                <span>Total pedido: {formatBRL(d.order?.total || 0)}</span>
                 {d.pickedUpAt && <span>Coletado: {new Date(d.pickedUpAt).toLocaleString("pt-BR")}</span>}
                 {d.deliveredAt && <span>Entregue: {new Date(d.deliveredAt).toLocaleString("pt-BR")}</span>}
               </div>
@@ -263,7 +319,7 @@ export default function DeliveriesPage() {
                 <div className="mt-3 pt-3 border-t border-gray-700 space-y-2 text-xs">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="text-gray-500">Vendedor:</span>
-                    <span className="text-white font-semibold">R$ {Number(d.vendorPayoutAmount || 0).toFixed(2)}</span>
+                    <span className="text-white font-semibold">{formatBRL(d.vendorPayoutAmount || 0)}</span>
                     {d.vendorPayoutStatus === "completed" && (
                       <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">Pago</span>
                     )}
@@ -274,7 +330,7 @@ export default function DeliveriesPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="text-gray-500">Entregador:</span>
-                    <span className="text-white font-semibold">R$ {Number(d.payoutAmount || 0).toFixed(2)}</span>
+                    <span className="text-white font-semibold">{formatBRL(d.payoutAmount || 0)}</span>
                     {d.payoutStatus === "completed" && (
                       <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">Pago</span>
                     )}
@@ -301,6 +357,29 @@ export default function DeliveriesPage() {
           <p className="text-gray-500 text-center py-8">Nenhuma entrega encontrada</p>
         )}
       </div>
+
+      {/* H6: Pagination controls */}
+      {filtered.length > pageSize && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
+          >
+            Anterior
+          </button>
+          <span className="text-sm text-gray-400">
+            Pagina {page + 1} de {Math.ceil(filtered.length / pageSize)}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(Math.ceil(filtered.length / pageSize) - 1, p + 1))}
+            disabled={page >= Math.ceil(filtered.length / pageSize) - 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
+          >
+            Proximo
+          </button>
+        </div>
+      )}
     </div>
   );
 }
