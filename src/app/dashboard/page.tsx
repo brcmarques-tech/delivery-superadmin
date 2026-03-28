@@ -15,36 +15,60 @@ const roleLabels: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  AWAITING_PAYMENT: "Aguardando Pgto",
+  PAYMENT_REVIEW: "Revisão Pgto",
   PENDING: "Pendente",
   ACCEPTED: "Aceito",
   PREPARING: "Preparando",
   READY: "Pronto",
+  VENDOR_CONFIRMED_PICKUP: "Coleta Confirmada",
   PICKED_UP: "Coletado",
   DELIVERING: "A caminho",
+  DELIVERER_CONFIRMED_DELIVERY: "Entrega Confirmada",
   DELIVERED: "Entregue",
+  COMPLETED: "Concluído",
   CANCELLED: "Cancelado",
+  REJECTED: "Rejeitado",
+  EXPIRED: "Expirado",
+  DISPUTED: "Disputado",
 };
 
 const statusColors: Record<string, string> = {
+  AWAITING_PAYMENT: "bg-amber-500/20 text-amber-400",
+  PAYMENT_REVIEW: "bg-orange-500/20 text-orange-400",
   PENDING: "bg-yellow-500/20 text-yellow-400",
   ACCEPTED: "bg-blue-500/20 text-blue-400",
   PREPARING: "bg-indigo-500/20 text-indigo-400",
   READY: "bg-green-500/20 text-green-400",
+  VENDOR_CONFIRMED_PICKUP: "bg-lime-500/20 text-lime-400",
   PICKED_UP: "bg-teal-500/20 text-teal-400",
   DELIVERING: "bg-cyan-500/20 text-cyan-400",
+  DELIVERER_CONFIRMED_DELIVERY: "bg-sky-500/20 text-sky-400",
   DELIVERED: "bg-emerald-500/20 text-emerald-400",
+  COMPLETED: "bg-green-600/20 text-green-300",
   CANCELLED: "bg-red-500/20 text-red-400",
+  REJECTED: "bg-rose-500/20 text-rose-400",
+  EXPIRED: "bg-gray-500/20 text-gray-400",
+  DISPUTED: "bg-purple-500/20 text-purple-400",
 };
 
 const statusChartColors: Record<string, string> = {
+  AWAITING_PAYMENT: "#f59e0b",
+  PAYMENT_REVIEW: "#f97316",
   PENDING: "#eab308",
   ACCEPTED: "#3b82f6",
   PREPARING: "#6366f1",
   READY: "#22c55e",
+  VENDOR_CONFIRMED_PICKUP: "#84cc16",
   PICKED_UP: "#14b8a6",
   DELIVERING: "#06b6d4",
+  DELIVERER_CONFIRMED_DELIVERY: "#0ea5e9",
   DELIVERED: "#10b981",
+  COMPLETED: "#16a34a",
   CANCELLED: "#ef4444",
+  REJECTED: "#f43f5e",
+  EXPIRED: "#6b7280",
+  DISPUTED: "#a855f7",
 };
 
 // L2: Locale-formatted currency
@@ -86,6 +110,8 @@ export default function DashboardPage() {
         <StatCard label="Entregas Concluídas" value={stats.completedDeliveries} color="text-emerald-400" border="border-emerald-800" />
         <StatCard label="Ticket Médio" value={formatBRL(stats.avgTicket)} color="text-blue-400" border="border-blue-800" />
         <StatCard label="Taxa Cancelamento" value={`${Number(stats.cancellationRate).toFixed(1)}%`} color={stats.cancellationRate > 10 ? "text-red-400" : "text-green-400"} border={stats.cancellationRate > 10 ? "border-red-800" : "border-green-800"} />
+        <StatCard label="Agendamentos" value={stats.totalAppointments} color="text-violet-400" border="border-violet-800" />
+        <StatCard label="Receita Agendamentos" value={formatBRL(stats.appointmentRevenue)} color="text-violet-400" border="border-violet-800" />
       </div>
 
       {/* Row 3: Charts */}

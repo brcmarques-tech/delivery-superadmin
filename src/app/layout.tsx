@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Super Admin - bcmTech Delivery",
+  title: "Super Admin - bcmTech Shopping",
   description: "Painel de controle total da plataforma",
 };
 

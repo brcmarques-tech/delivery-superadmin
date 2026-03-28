@@ -18,11 +18,11 @@ const TABS: { key: ContractType; label: string }[] = [
 ];
 
 const DEFAULT_VENDOR = `TERMOS DE USO DA PLATAFORMA — VENDEDOR
-BCM TECH DELIVERY
+BCM TECH SHOPPING
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Shopping, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Vendedor, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -151,11 +151,11 @@ d) Inatividade prolongada (superior a 180 dias).
 Ao clicar em "Aceitar e Continuar", você manifesta seu consentimento livre, informado e inequívoco com todos os termos acima.`;
 
 const DEFAULT_CUSTOMER = `TERMOS DE USO DA PLATAFORMA — CLIENTE
-BCM TECH DELIVERY
+BCM TECH SHOPPING
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Shopping, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Cliente, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -264,11 +264,11 @@ d) Interrupções decorrentes de falhas de terceiros, provedores de internet ou 
 Ao clicar em "Aceitar e Continuar", você manifesta seu consentimento livre, informado e inequívoco com todos os termos acima.`;
 
 const DEFAULT_DELIVERER = `TERMOS DE USO DA PLATAFORMA — ENTREGADOR AUTÔNOMO
-BCM TECH DELIVERY
+BCM TECH SHOPPING
 
 Última atualização: Março de 2026
 
-Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Estes Termos de Uso, doravante denominados "Termos", regulam o acesso e o uso da plataforma bcmTech Shopping, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Ao criar uma conta e utilizar a Plataforma como Entregador, você declara ter lido, compreendido e concordado integralmente com estes Termos.
 
@@ -395,11 +395,11 @@ e) Inatividade prolongada (superior a 180 dias).
 Ao clicar em "Aceitar e Continuar", você manifesta seu consentimento livre, informado e inequívoco com todos os termos acima.`;
 
 const DEFAULT_SUBSCRIPTION = `CONTRATO DE ASSINATURA DE PLANO — VENDEDOR
-BCM TECH DELIVERY
+BCM TECH SHOPPING
 
 Última atualização: Março de 2026
 
-Este Contrato de Assinatura, doravante denominado "Contrato", regula a contratação de planos pagos na plataforma bcmTech Delivery, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
+Este Contrato de Assinatura, doravante denominado "Contrato", regula a contratação de planos pagos na plataforma bcmTech Shopping, doravante denominada "Plataforma", operada por BCM TECH, inscrita no CNPJ sob o nº 59.858.037/0001-06, com sede na Avenida Nossa Senhora da Graça, 19, Centro, CEP 96330-000, Arroio Grande – RS, doravante denominada "Empresa".
 
 Este Contrato é complementar e não substitui os Termos de Uso da Plataforma para Vendedor, que permanecem integralmente vigentes.
 
