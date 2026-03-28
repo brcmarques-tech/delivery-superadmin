@@ -29,6 +29,8 @@ export const GET_DASHBOARD_STATS = gql`
       recentOrders { id orderNumber status total customerName storeName createdAt }
       avgTicket
       cancellationRate
+      totalAppointments
+      appointmentRevenue
     }
   }
 `;

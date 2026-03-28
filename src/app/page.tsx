@@ -34,7 +34,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-700">
         <div className="flex justify-center mb-6">
-          <img src="/logo.svg" alt="Delivery" className="h-16" />
+          <img src="/logo.svg" alt="Shopping" className="h-16" />
         </div>
         <p className="text-gray-400 text-center mb-8">Super Admin</p>
 
