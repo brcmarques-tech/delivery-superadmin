@@ -14,8 +14,8 @@ const GET_DISPUTED_ORDERS = gql`
   query DisputedOrders {
     disputedOrders {
       id orderNumber status total subtotal deliveryFee
-      disputeReason disputeStatus
-      deliveryAddress notes createdAt
+      disputeReason
+      deliveryAddress createdAt
       customer { id name email phone }
       store { id name }
       items { id quantity totalPrice product { name price } }
@@ -24,9 +24,9 @@ const GET_DISPUTED_ORDERS = gql`
 `;
 
 const RESOLVE_DISPUTE = gql`
-  mutation ResolveDispute($orderId: String!, $resolution: String!, $notes: String) {
-    resolveDispute(orderId: $orderId, resolution: $resolution, notes: $notes) {
-      id disputeStatus
+  mutation ResolveDispute($orderId: String!, $resolution: String!) {
+    resolveDispute(orderId: $orderId, resolution: $resolution) {
+      id status
     }
   }
 `;
@@ -307,12 +307,6 @@ export default function OrdersPage() {
                 </div>
               )}
 
-              {order.notes && (
-                <div className="mt-3 pt-3 border-t border-gray-700">
-                  <p className="text-xs text-gray-500 mb-1">Observacoes</p>
-                  <p className="text-gray-300 text-sm">{order.notes}</p>
-                </div>
-              )}
             </div>
           );
         })}
