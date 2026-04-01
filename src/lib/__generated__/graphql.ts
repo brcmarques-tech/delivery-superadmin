@@ -459,6 +459,7 @@ export type Mutation = {
   cancelAppointment: Appointment;
   cancelDispute: Order;
   cancelOrder: Order;
+  cancelSubscription: Scalars['Boolean']['output'];
   claimBadgeReward: Store;
   clearAllNotifications: Scalars['Boolean']['output'];
   clearCart: Scalars['Boolean']['output'];
@@ -499,6 +500,7 @@ export type Mutation = {
   markNoShow: Appointment;
   markPromotionPaid: Promotion;
   rateService: ServiceRating;
+  reactivateSubscription: Scalars['Boolean']['output'];
   recalculateVerification: Store;
   refundOrder: Order;
   registerApp: AppAuthResponse;
@@ -566,6 +568,7 @@ export type Mutation = {
   updateProduct: Product;
   updateService: Service;
   updateStore: Store;
+  updateSubscriptionCard: Scalars['Boolean']['output'];
   updateSuperadminPermissions: AppUser;
   updateVendorPlan: VendorUser;
   updateVendorProfile: VendorUser;
@@ -715,6 +718,8 @@ export type MutationCreateOrderArgs = {
 
 export type MutationCreatePlanUpgradeArgs = {
   billingPeriod?: InputMaybe<Scalars['String']['input']>;
+  cardToken?: InputMaybe<Scalars['String']['input']>;
+  paymentMethod?: InputMaybe<Scalars['String']['input']>;
   plan: VendorPlan;
 };
 
@@ -1212,6 +1217,11 @@ export type MutationUpdateStoreArgs = {
 };
 
 
+export type MutationUpdateSubscriptionCardArgs = {
+  cardToken: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateSuperadminPermissionsArgs = {
   id: Scalars['String']['input'];
   permissions: Scalars['String']['input'];
@@ -1394,7 +1404,9 @@ export type Payment = {
   metadata?: Maybe<Scalars['String']['output']>;
   mpPaymentId?: Maybe<Scalars['String']['output']>;
   mpPreferenceId?: Maybe<Scalars['String']['output']>;
+  pagarmeInvoiceId?: Maybe<Scalars['String']['output']>;
   pagarmeOrderId?: Maybe<Scalars['String']['output']>;
+  pagarmeSubscriptionId?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   type: Scalars['String']['output'];
   vendorUser?: Maybe<VendorUser>;
@@ -1549,6 +1561,7 @@ export type Query = {
   myPayments: Array<Payment>;
   myPromotions: Array<Promotion>;
   myStores: Array<Store>;
+  mySubscription?: Maybe<VendorSubscription>;
   nearbyStores: Array<Store>;
   notificationLogs: Array<NotificationLog>;
   onlineDeliverersCount: Scalars['Int']['output'];
@@ -2171,6 +2184,25 @@ export enum VendorPlan {
   Pro = 'PRO'
 }
 
+export type VendorSubscription = {
+  __typename?: 'VendorSubscription';
+  amount: Scalars['Float']['output'];
+  billingPeriod: Scalars['String']['output'];
+  cancelAtPeriodEnd: Scalars['Boolean']['output'];
+  canceledAt?: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  currentPeriodEnd?: Maybe<Scalars['DateTime']['output']>;
+  currentPeriodStart?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['ID']['output'];
+  installments: Scalars['Int']['output'];
+  metadata?: Maybe<Scalars['String']['output']>;
+  pagarmeSubscriptionId: Scalars['String']['output'];
+  plan: VendorPlan;
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  vendorUser: VendorUser;
+};
+
 export type VendorUser = {
   __typename?: 'VendorUser';
   acceptedSubscriptionTermsAt?: Maybe<Scalars['DateTime']['output']>;
@@ -2185,7 +2217,9 @@ export type VendorUser = {
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
+  pagarmeCustomerId?: Maybe<Scalars['String']['output']>;
   pagarmeRecipientId?: Maybe<Scalars['String']['output']>;
+  pagarmeSubscriptionId?: Maybe<Scalars['String']['output']>;
   paymentConnected: Scalars['Boolean']['output'];
   pendingRole?: Maybe<Scalars['String']['output']>;
   phone: Scalars['String']['output'];

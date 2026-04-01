@@ -29,6 +29,7 @@ const ROUTE_PERMISSION: Record<string, string> = {
   "/dashboard/contracts": "contracts",
   "/dashboard/notifications": "notifications",
   "/dashboard/settings": "settings",
+  "/dashboard/site": "settings",
 };
 
 function parsePermissions(permStr: string | null | undefined): PermissionsMap {
@@ -80,6 +81,7 @@ const navGroups = [
       { href: "/dashboard/contracts", label: "Contratos", perm: "contracts" },
       { href: "/dashboard/notifications", label: "Notificações", perm: "notifications" },
       { href: "/dashboard/settings", label: "Configurações", perm: "settings" },
+      { href: "/dashboard/site", label: "Site", perm: "settings" },
     ],
   },
 ];
