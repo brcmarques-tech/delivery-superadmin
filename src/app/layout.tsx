@@ -17,8 +17,9 @@ export const metadata: Metadata = {
   title: "Super Admin - bcmTech Shopping",
   description: "Painel de controle total da plataforma",
   icons: {
-    icon: '/logo.svg',
-    shortcut: '/logo.svg',
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
 };
 
