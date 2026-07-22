@@ -1,6 +1,17 @@
 node_modules/
 .next/
-.env
 tsconfig.tsbuildinfo
 node_modules
 .gitnexus
+
+# env files — alinhado com shopping-vendor-panel e shopping-storefront.
+# Antes so havia ".env", entao .env.local ficava rastreavel e podia vazar em commit.
+.env
+.env*.local
+!.env.example
+
+# gerado pelo Next a cada build
+next-env.d.ts
+
+# artefatos locais
+.claude/
