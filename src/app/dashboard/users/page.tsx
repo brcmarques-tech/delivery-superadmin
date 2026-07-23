@@ -68,9 +68,22 @@ export default function UsersPage() {
   });
 
   async function handleChangeRole(userId: string, newRole: string) {
-    await updateRole({ variables: { id: userId, role: newRole } });
-    refetchApp();
-    setRoleEditId(null);
+    // KAN-217: sem confirmacao nem try/catch, um clique promovia a SUPERADMIN
+    // (escalonamento acidental) e um erro passava silencioso.
+    const alvo = users.find((u: any) => u.id === userId);
+    const nome = alvo?.name || alvo?.email || "este usuario";
+    const msg =
+      newRole === "SUPERADMIN"
+        ? `Promover "${nome}" a SUPERADMIN? Essa conta tera ACESSO TOTAL a plataforma.`
+        : `Alterar o papel de "${nome}" para ${roleLabels[newRole] || newRole}?`;
+    if (!confirm(msg)) return;
+    try {
+      await updateRole({ variables: { id: userId, role: newRole } });
+      refetchApp();
+      setRoleEditId(null);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao alterar o papel do usuario.");
+    }
   }
 
   async function handleToggleActive(userId: string) {
