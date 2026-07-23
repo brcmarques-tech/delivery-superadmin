@@ -1,5 +1,7 @@
 import { ApolloClient, InMemoryCache, createHttpLink, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error';
+import { RetryLink } from '@apollo/client/link/retry';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
@@ -33,6 +35,49 @@ const wsLink = typeof window !== 'undefined'
     )
   : null;
 
+// KAN-216: portado do vendor-panel. O superadmin (painel mais sensivel) rodava
+// sem tratamento de erro nem retry — token expirado gerava falha silenciosa sem
+// deslogar, e falha de rede nao tinha nova tentativa.
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (typeof window === 'undefined') return;
+  const sessionExpired = graphQLErrors?.some(
+    (e) => e.message?.includes('SESSION_EXPIRED') || e.extensions?.code === 'UNAUTHENTICATED'
+  );
+  if (sessionExpired && localStorage.getItem('token')) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+    return;
+  }
+
+  if (graphQLErrors) {
+    for (const err of graphQLErrors) {
+      if (!err.message?.includes('SESSION_EXPIRED') && err.extensions?.code !== 'UNAUTHENTICATED') {
+        console.error(`[GraphQL Error]: ${err.message}`);
+        if (typeof window !== 'undefined' && (window as any).__apolloErrorToast) {
+          (window as any).__apolloErrorToast(err.message);
+        }
+      }
+    }
+  }
+
+  if (networkError) {
+    console.error(`[Network Error]: ${networkError.message}`);
+  }
+});
+
+const retryLink = new RetryLink({
+  delay: {
+    initial: 300,
+    max: 5000,
+    jitter: true,
+  },
+  attempts: {
+    max: 3,
+    retryIf: (error) => !!error,
+  },
+});
+
 const splitLink = wsLink
   ? split(
       ({ query }) => {
@@ -48,6 +93,6 @@ const splitLink = wsLink
   : authLink.concat(httpLink);
 
 export const apolloClient = new ApolloClient({
-  link: splitLink,
+  link: errorLink.concat(retryLink).concat(splitLink),
   cache: new InMemoryCache(),
 });
