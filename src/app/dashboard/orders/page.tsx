@@ -5,6 +5,7 @@ import { GET_ALL_ORDERS } from "@/lib/graphql";
 import { useState } from "react";
 import { gql } from "@apollo/client";
 
+import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
 const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
@@ -47,7 +48,7 @@ const allStatuses = ["", "AWAITING_PAYMENT", "PENDING", "ACCEPTED", "PREPARING",
 
 export default function OrdersPage() {
   // L1: TODO — Replace `any` types with proper Order interface
-  const { data, loading } = useQuery(GET_ALL_ORDERS, { pollInterval: 15000 });
+  const { data, loading } = useQuery(GET_ALL_ORDERS, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   // H5: Pagination state

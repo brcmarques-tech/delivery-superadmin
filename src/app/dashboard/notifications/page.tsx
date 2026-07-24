@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_NOTIFICATION_LOGS, RESEND_NOTIFICATION, DELETE_NOTIFICATION, CLEAR_ALL_NOTIFICATIONS } from "@/lib/graphql";
 import { useState } from "react";
 
+import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 interface NotifLog {
   id: string;
   type: string;
@@ -17,7 +18,7 @@ interface NotifLog {
 }
 
 export default function NotificationsPage() {
-  const { data, loading, refetch } = useQuery(GET_NOTIFICATION_LOGS, { pollInterval: 15000 });
+  const { data, loading, refetch } = useQuery(GET_NOTIFICATION_LOGS, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
   const [resendNotification] = useMutation(RESEND_NOTIFICATION);
   const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
   const [clearAllNotifications] = useMutation(CLEAR_ALL_NOTIFICATIONS);

@@ -27,6 +27,8 @@ export default function StoresPage() {
   const [deleteError, setDeleteError] = useState("");
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  // KAN-244: erro visivel para as acoes que antes falhavam em silencio.
+  const [actionError, setActionError] = useState("");
 
   const stores = data?.allStores || [];
 
@@ -38,9 +40,18 @@ export default function StoresPage() {
       s.city?.toLowerCase().includes(filter.toLowerCase())
   );
 
+  // KAN-244: sem try/catch, uma falha aqui virava unhandled rejection e o admin
+  // acreditava que a loja tinha sido ativada/desativada quando nada aconteceu.
   async function handleToggleActive(storeId: string) {
-    await toggleActive({ variables: { id: storeId } });
-    refetch();
+    setActionError("");
+    try {
+      await toggleActive({ variables: { id: storeId } });
+      refetch();
+    } catch (err: any) {
+      setActionError(
+        err?.graphQLErrors?.[0]?.message || err?.message || "Erro ao alterar o status da loja",
+      );
+    }
   }
 
   function startEditBadge(store: any) {
@@ -51,13 +62,21 @@ export default function StoresPage() {
     });
   }
 
+  // KAN-244: idem para a medalha de verificacao — falhava sem qualquer aviso.
   async function saveBadge() {
     if (!editingBadge) return;
-    await setVerification({
-      variables: { storeId: editingBadge, level: badgeForm.level, score: badgeForm.score },
-    });
-    setEditingBadge(null);
-    refetch();
+    setActionError("");
+    try {
+      await setVerification({
+        variables: { storeId: editingBadge, level: badgeForm.level, score: badgeForm.score },
+      });
+      setEditingBadge(null);
+      refetch();
+    } catch (err: any) {
+      setActionError(
+        err?.graphQLErrors?.[0]?.message || err?.message || "Erro ao salvar a medalha",
+      );
+    }
   }
 
   async function handleRequestDelete() {
@@ -88,6 +107,23 @@ export default function StoresPage() {
   return (
     <div className="w-full mx-auto">
       <h1 className="text-2xl font-bold text-white mb-6 text-center">Lojas ({stores.length})</h1>
+
+      {/* KAN-244: acoes de escrita agora reportam falha em vez de silenciar */}
+      {actionError && (
+        <div
+          role="alert"
+          className="mb-4 mx-auto max-w-lg rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300 flex items-start justify-between gap-3"
+        >
+          <span>{actionError}</span>
+          <button
+            onClick={() => setActionError("")}
+            className="text-red-300/70 hover:text-red-200 cursor-pointer shrink-0"
+            aria-label="Fechar aviso"
+          >
+            &#10005;
+          </button>
+        </div>
+      )}
 
       <div className="mb-6 flex justify-center">
         <input

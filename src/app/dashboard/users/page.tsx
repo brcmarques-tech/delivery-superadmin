@@ -86,13 +86,19 @@ export default function UsersPage() {
     }
   }
 
+  // KAN-244: sem try/catch, desativar um usuario podia falhar (rede/permissao)
+  // sem nenhum aviso — o admin achava que tinha desativado e nao tinha.
   async function handleToggleActive(userId: string) {
-    if (tab === "vendors") {
-      await toggleVendorActive({ variables: { id: userId } });
-      refetchVendor();
-    } else {
-      await toggleAppActive({ variables: { id: userId } });
-      refetchApp();
+    try {
+      if (tab === "vendors") {
+        await toggleVendorActive({ variables: { id: userId } });
+        refetchVendor();
+      } else {
+        await toggleAppActive({ variables: { id: userId } });
+        refetchApp();
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao alterar o status do usuario.");
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation } from "@apollo/client";
 import { useState } from "react";
+import { POLL_BACKGROUND, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 import {
   GET_ALL_COUPONS,
   ADMIN_TOGGLE_COUPON,
@@ -24,7 +25,7 @@ interface Coupon {
 }
 
 export default function CouponsPage() {
-  const { data, loading, refetch } = useQuery(GET_ALL_COUPONS, { pollInterval: 30000 });
+  const { data, loading, refetch } = useQuery(GET_ALL_COUPONS, { pollInterval: POLL_BACKGROUND, ...skipPollWhenHidden });
   const [toggleCoupon] = useMutation(ADMIN_TOGGLE_COUPON);
   const [deleteCoupon] = useMutation(ADMIN_DELETE_COUPON);
 

@@ -248,17 +248,29 @@ function UserCard({
 
 // ─── Main Page ───
 export default function ApprovalsPage() {
+  // KAN-245: a aba precisa ser conhecida ANTES das queries para poder pular as
+  // pesadas. Antes esta linha vinha depois e as 5 queries disparavam juntas no
+  // mount — incluindo `GET_ALL_APP_USERS` e `GET_ALL_VENDOR_USERS`, que trazem
+  // a base INTEIRA de usuarios (com fotos de documento) so para reconstruir as
+  // abas de historico no cliente. Abrir "Aprovacoes" custava 5 requisicoes
+  // simultaneas, sendo que a aba inicial ("pendentes") usa apenas 2.
+  const [tab, setTab] = useState<Tab>("pending");
+
+  // Histórico só é necessário nas abas de aprovados/rejeitados; os logs, só na
+  // aba de logs. Ficam sob demanda — ao abrir a aba, o Apollo busca.
+  const needsHistory = tab === "approved" || tab === "rejected";
+  const needsLogs = tab === "logs";
+
   const { data: appData, loading: loadingApp, refetch: refetchApp } = useQuery(GET_PENDING_APP_APPROVALS);
   const { data: vendorData, loading: loadingVendor, refetch: refetchVendor } = useQuery(GET_PENDING_VENDOR_APPROVALS);
-  const { data: allAppData, loading: loadingAllApp, refetch: refetchAllApp } = useQuery(GET_ALL_APP_USERS);
-  const { data: allVendorData, loading: loadingAllVendor, refetch: refetchAllVendor } = useQuery(GET_ALL_VENDOR_USERS);
-  const { data: logsData, loading: loadingLogs, refetch: refetchLogs } = useQuery(GET_APPROVAL_LOGS);
+  const { data: allAppData, loading: loadingAllApp, refetch: refetchAllApp } = useQuery(GET_ALL_APP_USERS, { skip: !needsHistory });
+  const { data: allVendorData, loading: loadingAllVendor, refetch: refetchAllVendor } = useQuery(GET_ALL_VENDOR_USERS, { skip: !needsHistory });
+  const { data: logsData, loading: loadingLogs, refetch: refetchLogs } = useQuery(GET_APPROVAL_LOGS, { skip: !needsLogs });
   const [approveAppUser] = useMutation(APPROVE_APP_USER);
   const [approveVendorUser] = useMutation(APPROVE_VENDOR_USER);
   const [rejectAppUser] = useMutation(REJECT_APP_USER);
   const [rejectVendorUser] = useMutation(REJECT_VENDOR_USER);
 
-  const [tab, setTab] = useState<Tab>("pending");
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [processing, setProcessing] = useState<string | null>(null);
@@ -311,13 +323,13 @@ export default function ApprovalsPage() {
       if (user._source === "vendor") {
         await approveVendorUser({ variables: { id: user.id } });
         refetchVendor();
-        refetchAllVendor();
-        refetchLogs();
+        if (needsHistory) refetchAllVendor();
+        if (needsLogs) refetchLogs();
       } else {
         await approveAppUser({ variables: { id: user.id } });
         refetchApp();
-        refetchAllApp();
-        refetchLogs();
+        if (needsHistory) refetchAllApp();
+        if (needsLogs) refetchLogs();
       }
     } catch {
       alert("Erro ao aprovar usuario");
@@ -335,13 +347,13 @@ export default function ApprovalsPage() {
       if (user._source === "vendor") {
         await rejectVendorUser({ variables: { id: user.id, reason: rejectReason } });
         refetchVendor();
-        refetchAllVendor();
-        refetchLogs();
+        if (needsHistory) refetchAllVendor();
+        if (needsLogs) refetchLogs();
       } else {
         await rejectAppUser({ variables: { id: user.id, reason: rejectReason } });
         refetchApp();
-        refetchAllApp();
-        refetchLogs();
+        if (needsHistory) refetchAllApp();
+        if (needsLogs) refetchLogs();
       }
       setRejectingId(null);
       setRejectReason("");

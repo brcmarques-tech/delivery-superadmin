@@ -2,8 +2,9 @@
 
 import { useQuery } from "@apollo/client";
 import { GET_ALL_PAYMENTS } from "@/lib/graphql";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+import { POLL_BACKGROUND, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
 const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
@@ -29,13 +30,21 @@ const statusColors: Record<string, string> = {
 
 export default function PaymentsPage() {
   // L1: TODO — Replace `any` types with proper Payment interface
-  const { data, loading } = useQuery(GET_ALL_PAYMENTS, { pollInterval: 30000 });
+  const { data, loading } = useQuery(GET_ALL_PAYMENTS, { pollInterval: POLL_BACKGROUND, ...skipPollWhenHidden });
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   // H4: Pagination state
   const [page, setPage] = useState(0);
   const pageSize = 20;
+
+  // KAN-242: sem isto, estando na pagina 3 e aplicando um filtro que reduz o
+  // resultado a poucos itens, `filtered.slice(page*20, ...)` volta vazio e a
+  // tela diz "nenhum pagamento" mesmo havendo resultados — confuso numa tela
+  // financeira. Qualquer mudanca de filtro volta para a primeira pagina.
+  useEffect(() => {
+    setPage(0);
+  }, [filter, typeFilter, statusFilter]);
   // L4: TODO — Add dark mode support
 
   const payments = data?.allPayments || [];

@@ -11,13 +11,14 @@ import {
 } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 
+import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
 const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
 
 export default function DeliveriesPage() {
   // L1: TODO — Replace `any` types with proper Delivery interface
-  const { data, loading } = useQuery(GET_ALL_DELIVERIES, { pollInterval: 15000 });
+  const { data, loading } = useQuery(GET_ALL_DELIVERIES, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
   const { data: deliveryData, refetch: refetchDelivery } = useQuery(GET_DELIVERY_PRICES);
   const [setDeliveryPerKm, { loading: savingKm }] = useMutation(SET_DELIVERY_PRICE_PER_KM);
   const [setDeliveryBase, { loading: savingBase }] = useMutation(SET_DELIVERY_BASE_PRICE);
