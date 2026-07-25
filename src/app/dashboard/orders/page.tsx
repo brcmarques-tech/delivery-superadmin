@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_ORDERS } from "@/lib/graphql";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { gql } from "@apollo/client";
 
 import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
@@ -60,16 +60,22 @@ export default function OrdersPage() {
   const [resolveDispute] = useMutation(RESOLVE_DISPUTE);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [disputeError, setDisputeError] = useState<string | null>(null);
+  // Reseta a paginação ao mudar filtro/status: sem isto, um filtro que reduz a
+  // lista abaixo do offset atual deixava o admin preso numa página vazia (e os
+  // controles de paginação sumiam porque o total filtrado <= pageSize).
+  useEffect(() => setPage(0), [filter, statusFilter]);
   // L4: TODO — Add dark mode support
 
   const orders = data?.allOrders || [];
 
   const filtered = orders.filter((o: any) => {
+    // Frontend#3: o optional chain parava em customer/store — se a relação existe
+    // mas o `name` é null, `.toLowerCase()` estourava e a lista sumia a cada tecla.
     const matchesSearch =
       !filter ||
-      o.orderNumber.toLowerCase().includes(filter.toLowerCase()) ||
-      o.customer?.name.toLowerCase().includes(filter.toLowerCase()) ||
-      o.store?.name.toLowerCase().includes(filter.toLowerCase());
+      o.orderNumber?.toLowerCase().includes(filter.toLowerCase()) ||
+      o.customer?.name?.toLowerCase().includes(filter.toLowerCase()) ||
+      o.store?.name?.toLowerCase().includes(filter.toLowerCase());
     const matchesStatus = !statusFilter || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

@@ -32,6 +32,9 @@ export default function DeliveriesPage() {
   // H6: Pagination state
   const [page, setPage] = useState(0);
   const pageSize = 20;
+  // Reseta a paginação ao mudar filtro/status (senão o admin fica preso numa
+  // página vazia quando o filtro reduz a lista abaixo do offset atual).
+  useEffect(() => setPage(0), [filter, statusFilter]);
   // L4: TODO — Add dark mode support
 
   const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;

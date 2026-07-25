@@ -31,6 +31,11 @@ export default function CouponsPage() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
+  // Erro visível + guard de in-flight: antes toggle/delete faziam await sem
+  // try/catch nem estado de carregando — falha silenciosa (o admin achava que
+  // deu certo) e cliques repetidos disparavam mutations duplicadas.
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const coupons: Coupon[] = data?.allCoupons || [];
 
@@ -56,14 +61,32 @@ export default function CouponsPage() {
   const totalCoupons = coupons.length;
 
   async function handleToggle(id: string) {
-    await toggleCoupon({ variables: { id } });
-    refetch();
+    if (busyId) return;
+    setBusyId(id);
+    setActionError(null);
+    try {
+      await toggleCoupon({ variables: { id } });
+      await refetch();
+    } catch (e: any) {
+      setActionError(e?.message || "Nao foi possivel alterar o cupom.");
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function handleDelete(id: string) {
+    if (busyId) return;
     if (!confirm("Tem certeza que deseja excluir este cupom?")) return;
-    await deleteCoupon({ variables: { id } });
-    refetch();
+    setBusyId(id);
+    setActionError(null);
+    try {
+      await deleteCoupon({ variables: { id } });
+      await refetch();
+    } catch (e: any) {
+      setActionError(e?.message || "Nao foi possivel excluir o cupom.");
+    } finally {
+      setBusyId(null);
+    }
   }
 
   function getStatus(c: Coupon): { label: string; color: string } {
@@ -78,6 +101,13 @@ export default function CouponsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">Cupons</h1>
+
+      {actionError && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400 hover:text-red-200 cursor-pointer">✕</button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -193,7 +223,8 @@ export default function CouponsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleToggle(c.id)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer active:scale-95 ${
+                      disabled={busyId === c.id}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                         c.isActive
                           ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
                           : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
@@ -203,7 +234,8 @@ export default function CouponsPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(c.id)}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition cursor-pointer active:scale-95"
+                      disabled={busyId === c.id}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Excluir
                     </button>

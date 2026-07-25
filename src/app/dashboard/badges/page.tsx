@@ -51,9 +51,12 @@ export default function BadgesPage() {
     if (data?.badgeConfig) {
       try {
         const config = JSON.parse(data.badgeConfig);
-        setThresholds(config.thresholds);
-        setPoints(config.points);
-        setRewards(config.rewards);
+        // Merge sobre os defaults em vez de substituir: um badgeConfig parcial/
+        // legado (ex.: sem a chave `rewards`) gravava `undefined` e a tela
+        // quebrava em `rewards[lvl]`/`thresholds[lvl]` (tela branca).
+        if (config.thresholds) setThresholds((d) => ({ ...d, ...config.thresholds }));
+        if (config.points) setPoints((d) => ({ ...d, ...config.points }));
+        if (config.rewards) setRewards((d) => ({ ...d, ...config.rewards }));
       } catch {}
     }
   }, [data]);
