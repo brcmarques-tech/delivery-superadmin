@@ -39,8 +39,13 @@ export default function DeliveriesPage() {
 
   const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;
   const currentBase = deliveryData?.deliveryBasePrice ?? 3;
-  const currentCommission = deliveryData?.deliveryCommissionPercent ?? 1;
-  const currentMinOrder = deliveryData?.minimumOrderPlatform ?? 10;
+  // BUGFIX: os fallbacks divergiam dos padroes reais do servidor (comissao 10,
+  // minimo 1) — e justamente NESTA tela, cuja funcao e ler e gravar esses
+  // valores. Enquanto a query nao respondia, o admin lia "1% de comissao" e
+  // "minimo R$ 10", ambos falsos, e podia gravar por cima achando que confirmava
+  // o que estava la.
+  const currentCommission = deliveryData?.deliveryCommissionPercent ?? 10;
+  const currentMinOrder = deliveryData?.minimumOrderPlatform ?? 1;
   const [perKmInput, setPerKmInput] = useState("");
   const [baseInput, setBaseInput] = useState("");
   const [commissionInput, setCommissionInput] = useState("");

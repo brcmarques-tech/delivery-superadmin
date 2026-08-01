@@ -203,7 +203,7 @@ export default function CouponsPage() {
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">Vendedor</p>
-                        <p className="text-teal-400">{c.store.owner.name}</p>
+                        <p className="text-teal-400">{c.store.owner?.name ?? "—"}</p>
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">Expira</p>

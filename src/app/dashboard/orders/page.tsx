@@ -33,19 +33,33 @@ const RESOLVE_DISPUTE = gql`
   }
 `;
 
+// BUGFIX: o mapa cobria 9 dos 16 status do enum. Faltavam justamente
+// PAYMENT_REVIEW, VENDOR_CONFIRMED_PICKUP, DELIVERER_CONFIRMED_DELIVERY,
+// COMPLETED, REJECTED, EXPIRED e DISPUTED — todos emitidos pelo servidor. Como
+// COMPLETED e o status final do caminho feliz, a MAIORIA dos pedidos concluidos
+// aparecia com o texto cru "COMPLETED" numa pilula cinza. E como o filtro era a
+// mesma lista, nao dava nem para filtrar disputas na triagem.
 const statusLabels: Record<string, { label: string; color: string }> = {
   AWAITING_PAYMENT: { label: "Aguardando pagamento", color: "bg-orange-500/20 text-orange-400" },
+  PAYMENT_REVIEW: { label: "Em análise", color: "bg-amber-500/20 text-amber-400" },
   PENDING: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400" },
   ACCEPTED: { label: "Aceito", color: "bg-blue-500/20 text-blue-400" },
   PREPARING: { label: "Preparando", color: "bg-indigo-500/20 text-indigo-400" },
   READY: { label: "Pronto", color: "bg-green-500/20 text-green-400" },
   PICKED_UP: { label: "Coletado", color: "bg-teal-500/20 text-teal-400" },
+  VENDOR_CONFIRMED_PICKUP: { label: "Saiu da loja", color: "bg-teal-500/20 text-teal-400" },
   DELIVERING: { label: "A caminho", color: "bg-cyan-500/20 text-cyan-400" },
+  DELIVERER_CONFIRMED_DELIVERY: { label: "Entrega confirmada", color: "bg-emerald-500/20 text-emerald-400" },
   DELIVERED: { label: "Entregue", color: "bg-emerald-500/20 text-emerald-400" },
+  COMPLETED: { label: "Finalizado", color: "bg-emerald-600/20 text-emerald-300" },
   CANCELLED: { label: "Cancelado", color: "bg-red-500/20 text-red-400" },
+  REJECTED: { label: "Rejeitado", color: "bg-red-500/20 text-red-400" },
+  EXPIRED: { label: "Expirado", color: "bg-gray-500/20 text-gray-400" },
+  DISPUTED: { label: "Em disputa", color: "bg-fuchsia-500/20 text-fuchsia-400" },
 };
 
-const allStatuses = ["", "AWAITING_PAYMENT", "PENDING", "ACCEPTED", "PREPARING", "READY", "PICKED_UP", "DELIVERING", "DELIVERED", "CANCELLED"];
+// Derivado do mapa para nao voltar a divergir.
+const allStatuses = ["", ...Object.keys(statusLabels)];
 
 export default function OrdersPage() {
   // L1: TODO — Replace `any` types with proper Order interface
