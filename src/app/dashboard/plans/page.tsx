@@ -106,8 +106,8 @@ export default function PlansPage() {
 
   const filtered = vendors.filter(
     (u: any) =>
-      u.name.toLowerCase().includes(filter.toLowerCase()) ||
-      u.email.toLowerCase().includes(filter.toLowerCase())
+      u.name?.toLowerCase().includes(filter.toLowerCase()) ||
+      u.email?.toLowerCase().includes(filter.toLowerCase())
   );
 
   const plans = plansData?.availablePlans || [];

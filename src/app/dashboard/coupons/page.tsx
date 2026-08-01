@@ -42,8 +42,8 @@ export default function CouponsPage() {
   const filtered = coupons.filter((c) => {
     const matchSearch =
       c.code.toLowerCase().includes(search.toLowerCase()) ||
-      c.store.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.store.owner.name.toLowerCase().includes(search.toLowerCase());
+      c.store?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.store?.owner?.name?.toLowerCase().includes(search.toLowerCase());
 
     const expired = c.expiresAt && new Date(c.expiresAt) < new Date();
     const maxedOut = c.maxUses > 0 && c.usesCount >= c.maxUses;

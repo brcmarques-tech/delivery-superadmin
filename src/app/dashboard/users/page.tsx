@@ -61,8 +61,8 @@ export default function UsersPage() {
     if (!filter) return true;
     const q = filter.toLowerCase();
     return (
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
+      u.name?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
       u.phone?.includes(filter)
     );
   });

@@ -36,7 +36,7 @@ export default function StoresPage() {
     (s: any) =>
       !filter ||
       s.name.toLowerCase().includes(filter.toLowerCase()) ||
-      s.owner?.name.toLowerCase().includes(filter.toLowerCase()) ||
+      s.owner?.name?.toLowerCase().includes(filter.toLowerCase()) ||
       s.city?.toLowerCase().includes(filter.toLowerCase())
   );
 
