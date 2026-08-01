@@ -3,6 +3,7 @@
 import { useQuery } from "@apollo/client";
 import { GET_ALL_PAYMENTS } from "@/lib/graphql";
 import { useState, useEffect } from "react";
+import ErrorState from "@/components/ErrorState";
 
 import { POLL_BACKGROUND, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
@@ -30,7 +31,7 @@ const statusColors: Record<string, string> = {
 
 export default function PaymentsPage() {
   // L1: TODO — Replace `any` types with proper Payment interface
-  const { data, loading } = useQuery(GET_ALL_PAYMENTS, { pollInterval: POLL_BACKGROUND, ...skipPollWhenHidden });
+  const { data, loading, error, refetch } = useQuery(GET_ALL_PAYMENTS, { pollInterval: POLL_BACKGROUND, ...skipPollWhenHidden });
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -70,6 +71,22 @@ export default function PaymentsPage() {
     .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
 
   if (loading) return <p className="text-gray-400">Carregando...</p>;
+
+  // Query falhou e nao ha dados em cache: sem isto a tela mostrava
+  // "0 pagamentos" e "R$ 0,00 de receita aprovada" — numa tela financeira
+  // isso e lido como "o dinheiro sumiu", nao como "a requisicao falhou".
+  if (error && !data) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-white mb-6">Pagamentos da Plataforma</h1>
+        <ErrorState
+          title="Nao foi possivel carregar os pagamentos."
+          description="Isto nao significa que nao ha pagamentos — a consulta falhou. Verifique sua conexao e tente novamente."
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

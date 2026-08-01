@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_ORDERS } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 import { gql } from "@apollo/client";
+import ErrorState from "@/components/ErrorState";
 
 import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
@@ -48,7 +49,7 @@ const allStatuses = ["", "AWAITING_PAYMENT", "PENDING", "ACCEPTED", "PREPARING",
 
 export default function OrdersPage() {
   // L1: TODO — Replace `any` types with proper Order interface
-  const { data, loading } = useQuery(GET_ALL_ORDERS, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
+  const { data, loading, error: ordersError, refetch: refetchOrders } = useQuery(GET_ALL_ORDERS, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   // H5: Pagination state
@@ -56,7 +57,7 @@ export default function OrdersPage() {
   const pageSize = 20;
   // H7: Dispute management
   const [activeTab, setActiveTab] = useState<"orders" | "disputes">("orders");
-  const { data: disputeData, loading: disputeLoading, refetch: refetchDisputes } = useQuery(GET_DISPUTED_ORDERS, { skip: activeTab !== "disputes" });
+  const { data: disputeData, loading: disputeLoading, error: disputeQueryError, refetch: refetchDisputes } = useQuery(GET_DISPUTED_ORDERS, { skip: activeTab !== "disputes" });
   const [resolveDispute] = useMutation(RESOLVE_DISPUTE);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [disputeError, setDisputeError] = useState<string | null>(null);
@@ -102,7 +103,8 @@ export default function OrdersPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">
-        Todos os Pedidos ({orders.length})
+        {/* Sem o guard de `data`, uma query com erro mostrava "Todos os Pedidos (0)". */}
+        Todos os Pedidos{data ? ` (${orders.length})` : ""}
       </h1>
 
       {/* H7: Tab toggle for orders vs disputes */}
@@ -136,6 +138,14 @@ export default function OrdersPage() {
           )}
           {disputeLoading ? (
             <p className="text-gray-400">Carregando disputas...</p>
+          ) : disputeQueryError && !disputeData ? (
+            /* Antes do empty state: sem isto, uma falha na query virava
+               "Nenhuma disputa encontrada" e o admin ignorava disputas reais. */
+            <ErrorState
+              title="Nao foi possivel carregar as disputas."
+              description="Isto nao significa que nao ha disputas abertas — a consulta falhou."
+              onRetry={() => refetchDisputes()}
+            />
           ) : disputedOrders.length === 0 ? (
             <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 text-center">
               <p className="text-gray-400">Nenhuma disputa encontrada</p>
@@ -180,7 +190,17 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {activeTab === "orders" && <>
+      {/* Query falhou e nao ha cache: mostra o erro em vez de "Nenhum pedido
+          encontrado", que faria o admin acreditar que nao ha pedidos no dia. */}
+      {activeTab === "orders" && ordersError && !data && (
+        <ErrorState
+          title="Nao foi possivel carregar os pedidos."
+          description="Isto nao significa que nao ha pedidos — a consulta falhou. Verifique sua conexao e tente novamente."
+          onRetry={() => refetchOrders()}
+        />
+      )}
+
+      {activeTab === "orders" && !(ordersError && !data) && <>
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
