@@ -96,8 +96,14 @@ export default function OrdersPage() {
   });
 
   // H7: Dispute resolution handler
-  async function handleResolveDispute(orderId: string, resolution: "REFUND_CUSTOMER" | "RELEASE_VENDOR") {
-    const label = resolution === "REFUND_CUSTOMER" ? "reembolsar o cliente" : "liberar pagamento ao vendedor";
+  //
+  // Os valores enviados aqui eram "REFUND_CUSTOMER" / "RELEASE_VENDOR", mas o
+  // servidor so aceita CUSTOMER_FAVOR | VENDOR_FAVOR | DELIVERER_FAVOR
+  // (orders.service.ts:1159). Toda tentativa de resolver disputa voltava com
+  // "Resolucao invalida": nenhuma disputa era resolvivel pelo painel, o dinheiro
+  // ficava travado no split e o pedido permanecia DISPUTED para sempre.
+  async function handleResolveDispute(orderId: string, resolution: "CUSTOMER_FAVOR" | "VENDOR_FAVOR") {
+    const label = resolution === "CUSTOMER_FAVOR" ? "reembolsar o cliente" : "liberar pagamento ao vendedor";
     if (!confirm(`Confirma ${label} para o pedido?`)) return;
     setDisputeError(null);
     setResolvingId(orderId);
@@ -183,14 +189,14 @@ export default function OrdersPage() {
                   <p className="text-white font-bold mb-3">Total: {formatBRL(order.total)}</p>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => handleResolveDispute(order.id, "REFUND_CUSTOMER")}
+                      onClick={() => handleResolveDispute(order.id, "CUSTOMER_FAVOR")}
                       disabled={resolvingId === order.id}
                       className="px-4 py-2 bg-red-600/20 text-red-400 rounded-xl text-sm font-semibold hover:bg-red-600/30 transition cursor-pointer disabled:opacity-50"
                     >
                       A favor do cliente (reembolso)
                     </button>
                     <button
-                      onClick={() => handleResolveDispute(order.id, "RELEASE_VENDOR")}
+                      onClick={() => handleResolveDispute(order.id, "VENDOR_FAVOR")}
                       disabled={resolvingId === order.id}
                       className="px-4 py-2 bg-emerald-600/20 text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-600/30 transition cursor-pointer disabled:opacity-50"
                     >
