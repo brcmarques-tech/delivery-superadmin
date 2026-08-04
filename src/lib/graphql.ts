@@ -4,7 +4,11 @@ export const LOGIN = gql`
   mutation LoginApp($input: LoginInput!, $forceLogin: Boolean) {
     loginApp(input: $input, forceLogin: $forceLogin) {
       accessToken
-      user { id name email role }
+      # `permissions` NAO era pedido aqui, entao storedUser.permissions era
+      # sempre undefined e parsePermissions devolvia TUDO true: o esconde-menu e
+      # o guard de rota do layout eram codigo morto. Um admin restrito via o
+      # painel inteiro.
+      user { id name email role permissions }
     }
   }
 `;
