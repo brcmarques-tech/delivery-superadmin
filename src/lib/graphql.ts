@@ -433,8 +433,8 @@ export const UPDATE_SUPERADMIN_PERMISSIONS = gql`
 `;
 
 export const UPDATE_NOTIFICATION_EMAIL = gql`
-  mutation UpdateNotificationEmail($email: String!) {
-    updateNotificationEmail(email: $email) {
+  mutation UpdateNotificationEmail($email: String!, $userId: String) {
+    updateNotificationEmail(email: $email, userId: $userId) {
       id notificationEmail
     }
   }
@@ -446,6 +446,14 @@ export const GET_ALL_PAYMENTS = gql`
       id type description amount status mpPaymentId checkoutUrl createdAt
       appUser { id name email }
       vendorUser { id name email }
+    }
+    # Totais da tabela INTEIRA — allPayments traz so os 100 mais recentes, e o
+    # cabecalho somava esses 100 como se fossem tudo (receita subestimada sem
+    # nenhum aviso).
+    paymentsSummary {
+      totalCount
+      approvedAmount
+      pendingAmount
     }
   }
 `;

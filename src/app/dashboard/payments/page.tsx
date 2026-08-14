@@ -62,13 +62,15 @@ export default function PaymentsPage() {
     );
   });
 
-  const totalApproved = payments
-    .filter((p: any) => p.status === "approved")
-    .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
-
-  const totalPending = payments
-    .filter((p: any) => p.status === "pending")
-    .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+  // BUGFIX: os cards somavam client-side os (ate) 100 pagamentos da lista e
+  // apresentavam como o total da plataforma — com 900 pagamentos, "Receita
+  // aprovada" era uma fracao do real, sem aviso. Agora os totais vem do
+  // servidor (tabela inteira); a lista continua paginada.
+  const summary = data?.paymentsSummary;
+  const totalCount = summary?.totalCount ?? payments.length;
+  const totalApproved = summary?.approvedAmount ?? 0;
+  const totalPending = summary?.pendingAmount ?? 0;
+  const listaTruncada = payments.length < totalCount;
 
   if (loading) return <p className="text-gray-400">Carregando...</p>;
 
@@ -90,13 +92,20 @@ export default function PaymentsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-2">Pagamentos da Plataforma ({payments.length})</h1>
-      <p className="text-sm text-gray-500 mb-6">Planos, promocoes e repasses de entregadores — pedidos de lojas sao processados via split direto pelo Pagar.me</p>
+      <h1 className="text-2xl font-bold text-white mb-2">Pagamentos da Plataforma ({totalCount})</h1>
+      <p className="text-sm text-gray-500 mb-6">
+        Planos, promocoes e repasses de entregadores — pedidos de lojas sao processados via split direto pelo Pagar.me
+        {listaTruncada && (
+          <span className="block text-yellow-500/80 mt-1">
+            Lista mostrando os {payments.length} mais recentes de {totalCount}. Os cards de totais cobrem todos.
+          </span>
+        )}
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
           <p className="text-sm text-gray-400">Total pagamentos</p>
-          <p className="text-2xl font-bold text-white">{payments.length}</p>
+          <p className="text-2xl font-bold text-white">{totalCount}</p>
         </div>
         <div className="bg-gray-800 rounded-2xl p-4 border border-emerald-800">
           <p className="text-sm text-gray-400">Receita aprovada</p>
