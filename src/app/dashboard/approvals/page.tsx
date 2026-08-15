@@ -199,6 +199,22 @@ function UserCard({
                   <ClickablePhoto src={user.identityPhotoBackUrl} alt="Documento (verso)" label="Documento (verso):" onOpen={onOpenImage} />
                 )}
               </div>
+              {/* KYC (3.8): foto ausente era simplesmente OMITIDA — a candidatura
+                  sem documento aparecia "limpa" e aprovavel. O backend agora
+                  bloqueia a aprovacao; aqui o problema fica visivel. */}
+              {(!user.profilePhotoUrl || !user.identityPhotoUrl || !user.identityPhotoBackUrl) && (
+                <div className="mt-2 p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                  <p className="text-sm text-amber-400">
+                    <span className="font-medium">Documentos faltando:</span>{" "}
+                    {[
+                      !user.profilePhotoUrl && "selfie",
+                      !user.identityPhotoUrl && "documento (frente)",
+                      !user.identityPhotoBackUrl && "documento (verso)",
+                    ].filter(Boolean).join(", ")}
+                    {" — nao e possivel aprovar. Rejeite para que o entregador reenvie."}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -331,8 +347,11 @@ export default function ApprovalsPage() {
         if (needsHistory) refetchAllApp();
         if (needsLogs) refetchLogs();
       }
-    } catch {
-      alert("Erro ao aprovar usuario");
+    } catch (err: unknown) {
+      // O motivo do servidor importa (ex.: bloqueio por documentos faltando no
+      // KYC) — engolir a mensagem deixava o admin sem saber o que corrigir.
+      const msg = err instanceof Error && err.message ? err.message : "Erro ao aprovar usuario";
+      alert(msg);
     }
     setProcessing(null);
   }
@@ -357,8 +376,9 @@ export default function ApprovalsPage() {
       }
       setRejectingId(null);
       setRejectReason("");
-    } catch {
-      alert("Erro ao rejeitar usuario");
+    } catch (err: unknown) {
+      const msg = err instanceof Error && err.message ? err.message : "Erro ao rejeitar usuario";
+      alert(msg);
     }
     setProcessing(null);
   }
