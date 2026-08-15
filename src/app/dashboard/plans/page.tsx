@@ -214,7 +214,14 @@ export default function PlansPage() {
     }
 
     // C2: Confirmation dialog before saving plan config
-    if (!confirm(`Salvar alteracoes no plano ${planLabels[editingPlan] || editingPlan}? Isso afetara todos os vendors neste plano.`)) return;
+    // Bug 3.7: o texto antigo ("afetara todos os vendors") prometia o oposto da
+    // realidade — no Pagar.me, assinaturas ATIVAS congelam o preco da criacao.
+    // Limites/comissao valem ja; preco novo so para novas assinaturas.
+    if (!confirm(
+      `Salvar alteracoes no plano ${planLabels[editingPlan] || editingPlan}?\n\n` +
+      `• Limites, comissao e recursos valem IMEDIATAMENTE para todos os vendedores deste plano.\n` +
+      `• Precos novos valem para NOVAS assinaturas. Assinaturas ja ativas continuam sendo cobradas pelo valor antigo ate serem migradas/renovadas.`
+    )) return;
 
     setError(null);
     setSaving(true);
