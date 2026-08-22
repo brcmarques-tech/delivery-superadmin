@@ -122,7 +122,10 @@ export default function SettingsPage() {
   async function handleSaveNotifEmail(userId: string) {
     setSaving(true);
     try {
-      await updateNotifEmail({ variables: { email: editNotifEmail } });
+      // BUGFIX: o userId era IGNORADO — a mutation gravava sempre no admin
+      // LOGADO. Editar a linha da "Carla" sobrescrevia o email de auditoria de
+      // quem clicou, e a linha dela seguia "Nao configurado".
+      await updateNotifEmail({ variables: { email: editNotifEmail, userId } });
       setEditingEmailId(null);
       refetch();
     } catch (err: any) {
@@ -131,8 +134,28 @@ export default function SettingsPage() {
     setSaving(false);
   }
 
-  async function handleToggleActive(userId: string) {
-    await toggleActive({ variables: { id: userId } });
+  async function handleToggleActive(userId: string, isActive?: boolean, name?: string) {
+    // Desativar rotaciona o sessionToken e derruba a sessao NA HORA — inclusive
+    // a propria. Era o unico botao destrutivo da tela sem confirmacao (a troca
+    // de role confirma; excluir loja exige senha + email). O backend tambem
+    // ganhou a guarda de ultimo superadmin ativo, mas o aviso pertence aqui.
+    if (isActive) {
+      let meuId: string | null = null;
+      try {
+        meuId = JSON.parse(localStorage.getItem("user") || "null")?.id ?? null;
+      } catch {
+        meuId = null;
+      }
+      const aviso = userId === meuId
+        ? "Voce esta prestes a desativar a PROPRIA conta. Sua sessao cai imediatamente e outro superadmin precisara reativa-la. Continuar?"
+        : `Desativar ${name || "este admin"}? A sessao dele cai imediatamente.`;
+      if (!confirm(aviso)) return;
+    }
+    try {
+      await toggleActive({ variables: { id: userId } });
+    } catch (err: any) {
+      alert("Erro ao alterar status: " + err.message);
+    }
     refetch();
   }
 
@@ -375,7 +398,7 @@ export default function SettingsPage() {
                       {isEditing ? "Cancelar" : "Editar permissoes"}
                     </button>
                     <button
-                      onClick={() => handleToggleActive(admin.id)}
+                      onClick={() => handleToggleActive(admin.id, admin.isActive, admin.name)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
                         admin.isActive
                           ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"

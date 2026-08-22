@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_ALL_DELIVERIES,
+  GET_DELIVERY_COUNTS,
   GET_DELIVERY_PRICES,
   SET_DELIVERY_PRICE_PER_KM,
   SET_DELIVERY_BASE_PRICE,
@@ -11,32 +12,56 @@ import {
 } from "@/lib/graphql";
 import { useState, useEffect } from "react";
 
+import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
 const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
 
 export default function DeliveriesPage() {
   // L1: TODO — Replace `any` types with proper Delivery interface
-  const { data, loading } = useQuery(GET_ALL_DELIVERIES, { pollInterval: 15000 });
+  const [filter, setFilter] = useState("");
+  const [serverSearch, setServerSearch] = useState(""); // KAN-292: busca debounced ao servidor
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+
+  // KAN-292: debounce da busca (evita 1 query por tecla).
+  useEffect(() => {
+    const t = setTimeout(() => setServerSearch(filter.trim()), 350);
+    return () => clearTimeout(t);
+  }, [filter]);
+
+  // KAN-292: filtro/busca/paginacao no servidor (antes baixava a tabela inteira
+  // sob polling e filtrava/paginava no cliente). Cards de resumo usam contagens.
+  const { data, loading } = useQuery(GET_ALL_DELIVERIES, {
+    variables: { status: statusFilter === "ALL" ? null : statusFilter, search: serverSearch || null, limit: pageSize, offset: page * pageSize },
+    pollInterval: POLL_OPERATIONAL,
+    ...skipPollWhenHidden,
+    notifyOnNetworkStatusChange: true,
+  });
+  const { data: countsData } = useQuery(GET_DELIVERY_COUNTS, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
   const { data: deliveryData, refetch: refetchDelivery } = useQuery(GET_DELIVERY_PRICES);
   const [setDeliveryPerKm, { loading: savingKm }] = useMutation(SET_DELIVERY_PRICE_PER_KM);
   const [setDeliveryBase, { loading: savingBase }] = useMutation(SET_DELIVERY_BASE_PRICE);
   const [setDeliveryCommission, { loading: savingCommission }] = useMutation(SET_DELIVERY_COMMISSION);
   const [setMinOrder, { loading: savingMinOrder }] = useMutation(SET_MINIMUM_ORDER_PLATFORM);
 
-  const [filter, setFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
   // H1: Error state
   const [error, setError] = useState<string | null>(null);
-  // H6: Pagination state
-  const [page, setPage] = useState(0);
-  const pageSize = 20;
+  // Reseta a paginação ao mudar busca/status (senão o admin fica preso numa
+  // página vazia quando o filtro reduz a lista abaixo do offset atual).
+  useEffect(() => setPage(0), [serverSearch, statusFilter]);
   // L4: TODO — Add dark mode support
 
   const currentPerKm = deliveryData?.deliveryPricePerKm ?? 1.5;
   const currentBase = deliveryData?.deliveryBasePrice ?? 3;
-  const currentCommission = deliveryData?.deliveryCommissionPercent ?? 1;
-  const currentMinOrder = deliveryData?.minimumOrderPlatform ?? 10;
+  // BUGFIX: os fallbacks divergiam dos padroes reais do servidor (comissao 10,
+  // minimo 1) — e justamente NESTA tela, cuja funcao e ler e gravar esses
+  // valores. Enquanto a query nao respondia, o admin lia "1% de comissao" e
+  // "minimo R$ 10", ambos falsos, e podia gravar por cima achando que confirmava
+  // o que estava la.
+  const currentCommission = deliveryData?.deliveryCommissionPercent ?? 10;
+  const currentMinOrder = deliveryData?.minimumOrderPlatform ?? 1;
   const [perKmInput, setPerKmInput] = useState("");
   const [baseInput, setBaseInput] = useState("");
   const [commissionInput, setCommissionInput] = useState("");
@@ -111,7 +136,10 @@ export default function DeliveriesPage() {
     }
   }
 
-  const deliveries = data?.allDeliveries || [];
+  // KAN-292: a pagina ja vem filtrada/paginada do servidor.
+  const deliveries = data?.allDeliveries?.items || [];
+  const total = data?.allDeliveries?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   function getStatus(d: any) {
     if (d.deliveredAt) return "DELIVERED";
@@ -119,21 +147,10 @@ export default function DeliveriesPage() {
     return "PICKED_UP";
   }
 
-  const filtered = deliveries.filter((d: any) => {
-    const status = getStatus(d);
-    if (statusFilter !== "ALL" && status !== statusFilter) return false;
-    if (!filter) return true;
-    const q = filter.toLowerCase();
-    return (
-      d.deliverer?.name?.toLowerCase().includes(q) ||
-      d.order?.orderNumber?.toLowerCase().includes(q) ||
-      d.order?.store?.name?.toLowerCase().includes(q) ||
-      d.order?.customer?.name?.toLowerCase().includes(q)
-    );
-  });
-
-  const active = deliveries.filter((d: any) => !d.deliveredAt).length;
-  const completed = deliveries.filter((d: any) => d.deliveredAt).length;
+  // Cards de resumo: contagens globais (independem do filtro/pagina).
+  const globalTotal = countsData?.deliveryCounts?.total ?? 0;
+  const active = countsData?.deliveryCounts?.active ?? 0;
+  const completed = countsData?.deliveryCounts?.completed ?? 0;
 
   const statusLabels: Record<string, string> = {
     PICKED_UP: "Coletado",
@@ -151,7 +168,7 @@ export default function DeliveriesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Entregas ({deliveries.length})</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Entregas ({globalTotal})</h1>
 
       {/* H1: Error banner */}
       {error && (
@@ -164,7 +181,7 @@ export default function DeliveriesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
           <p className="text-sm text-gray-400">Total</p>
-          <p className="text-2xl font-bold text-white">{deliveries.length}</p>
+          <p className="text-2xl font-bold text-white">{globalTotal}</p>
         </div>
         <div className="bg-gray-800 rounded-2xl p-4 border border-cyan-800">
           <p className="text-sm text-gray-400">Em andamento</p>
@@ -266,10 +283,10 @@ export default function DeliveriesPage() {
       </div>
 
       {/* H6: Pagination info */}
-      <p className="text-xs text-gray-500 mb-2">Mostrando {Math.min(page * pageSize + 1, filtered.length)}-{Math.min((page + 1) * pageSize, filtered.length)} de {filtered.length}</p>
+      <p className="text-xs text-gray-500 mb-2">Mostrando {total === 0 ? 0 : page * pageSize + 1}-{page * pageSize + deliveries.length} de {total}</p>
 
       <div className="space-y-4">
-        {filtered.slice(page * pageSize, (page + 1) * pageSize).map((d: any) => {
+        {deliveries.map((d: any) => {
           const status = getStatus(d);
           return (
             <div key={d.id} className="bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-700">
@@ -353,13 +370,13 @@ export default function DeliveriesPage() {
           );
         })}
 
-        {filtered.length === 0 && (
+        {deliveries.length === 0 && (
           <p className="text-gray-500 text-center py-8">Nenhuma entrega encontrada</p>
         )}
       </div>
 
-      {/* H6: Pagination controls */}
-      {filtered.length > pageSize && (
+      {/* H6: Pagination controls (KAN-292: baseados no total do servidor) */}
+      {total > pageSize && (
         <div className="flex items-center justify-center gap-4 mt-6">
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -369,11 +386,11 @@ export default function DeliveriesPage() {
             Anterior
           </button>
           <span className="text-sm text-gray-400">
-            Pagina {page + 1} de {Math.ceil(filtered.length / pageSize)}
+            Pagina {page + 1} de {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(Math.ceil(filtered.length / pageSize) - 1, p + 1))}
-            disabled={page >= Math.ceil(filtered.length / pageSize) - 1}
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
             className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
           >
             Proximo

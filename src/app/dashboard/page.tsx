@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client";
 import { GET_DASHBOARD_STATS } from "@/lib/graphql";
 import dynamic from "next/dynamic";
 
+import { POLL_BACKGROUND, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 const DashboardCharts = dynamic(() => import("@/components/DashboardCharts"), { ssr: false });
 
 const roleLabels: Record<string, string> = {
@@ -76,7 +77,7 @@ const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
 
 export default function DashboardPage() {
-  const { data, loading } = useQuery(GET_DASHBOARD_STATS, { pollInterval: 30000 });
+  const { data, loading } = useQuery(GET_DASHBOARD_STATS, { pollInterval: POLL_BACKGROUND, ...skipPollWhenHidden });
   const stats = data?.dashboardStats;
 
   if (loading) {

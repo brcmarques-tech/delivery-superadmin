@@ -2,9 +2,11 @@
 
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_ORDERS } from "@/lib/graphql";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { gql } from "@apollo/client";
+import ErrorState from "@/components/ErrorState";
 
+import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
 // L2: Locale-formatted currency
 const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
@@ -31,51 +33,83 @@ const RESOLVE_DISPUTE = gql`
   }
 `;
 
+// BUGFIX: o mapa cobria 9 dos 16 status do enum. Faltavam justamente
+// PAYMENT_REVIEW, VENDOR_CONFIRMED_PICKUP, DELIVERER_CONFIRMED_DELIVERY,
+// COMPLETED, REJECTED, EXPIRED e DISPUTED — todos emitidos pelo servidor. Como
+// COMPLETED e o status final do caminho feliz, a MAIORIA dos pedidos concluidos
+// aparecia com o texto cru "COMPLETED" numa pilula cinza. E como o filtro era a
+// mesma lista, nao dava nem para filtrar disputas na triagem.
 const statusLabels: Record<string, { label: string; color: string }> = {
   AWAITING_PAYMENT: { label: "Aguardando pagamento", color: "bg-orange-500/20 text-orange-400" },
+  PAYMENT_REVIEW: { label: "Em análise", color: "bg-amber-500/20 text-amber-400" },
   PENDING: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400" },
   ACCEPTED: { label: "Aceito", color: "bg-blue-500/20 text-blue-400" },
   PREPARING: { label: "Preparando", color: "bg-indigo-500/20 text-indigo-400" },
   READY: { label: "Pronto", color: "bg-green-500/20 text-green-400" },
   PICKED_UP: { label: "Coletado", color: "bg-teal-500/20 text-teal-400" },
+  VENDOR_CONFIRMED_PICKUP: { label: "Saiu da loja", color: "bg-teal-500/20 text-teal-400" },
   DELIVERING: { label: "A caminho", color: "bg-cyan-500/20 text-cyan-400" },
+  DELIVERER_CONFIRMED_DELIVERY: { label: "Entrega confirmada", color: "bg-emerald-500/20 text-emerald-400" },
   DELIVERED: { label: "Entregue", color: "bg-emerald-500/20 text-emerald-400" },
+  COMPLETED: { label: "Finalizado", color: "bg-emerald-600/20 text-emerald-300" },
   CANCELLED: { label: "Cancelado", color: "bg-red-500/20 text-red-400" },
+  REJECTED: { label: "Rejeitado", color: "bg-red-500/20 text-red-400" },
+  EXPIRED: { label: "Expirado", color: "bg-gray-500/20 text-gray-400" },
+  DISPUTED: { label: "Em disputa", color: "bg-fuchsia-500/20 text-fuchsia-400" },
 };
 
-const allStatuses = ["", "AWAITING_PAYMENT", "PENDING", "ACCEPTED", "PREPARING", "READY", "PICKED_UP", "DELIVERING", "DELIVERED", "CANCELLED"];
+// Derivado do mapa para nao voltar a divergir.
+const allStatuses = ["", ...Object.keys(statusLabels)];
 
 export default function OrdersPage() {
   // L1: TODO — Replace `any` types with proper Order interface
-  const { data, loading } = useQuery(GET_ALL_ORDERS, { pollInterval: 15000 });
   const [filter, setFilter] = useState("");
+  const [serverSearch, setServerSearch] = useState(""); // KAN-292: busca debounced enviada ao servidor
   const [statusFilter, setStatusFilter] = useState("");
   // H5: Pagination state
   const [page, setPage] = useState(0);
   const pageSize = 20;
+
+  // KAN-292: debounce da busca para nao disparar uma query por tecla.
+  useEffect(() => {
+    const t = setTimeout(() => setServerSearch(filter.trim()), 350);
+    return () => clearTimeout(t);
+  }, [filter]);
+
+  // KAN-292: filtro/busca/paginacao agora vao ao servidor (antes baixava a
+  // tabela inteira e filtrava/paginava no cliente, ainda com polling).
+  const { data, loading, error: ordersError, refetch: refetchOrders } = useQuery(GET_ALL_ORDERS, {
+    variables: { status: statusFilter || null, search: serverSearch || null, limit: pageSize, offset: page * pageSize },
+    pollInterval: POLL_OPERATIONAL,
+    ...skipPollWhenHidden,
+    notifyOnNetworkStatusChange: true,
+  });
   // H7: Dispute management
   const [activeTab, setActiveTab] = useState<"orders" | "disputes">("orders");
-  const { data: disputeData, loading: disputeLoading, refetch: refetchDisputes } = useQuery(GET_DISPUTED_ORDERS, { skip: activeTab !== "disputes" });
+  const { data: disputeData, loading: disputeLoading, error: disputeQueryError, refetch: refetchDisputes } = useQuery(GET_DISPUTED_ORDERS, { skip: activeTab !== "disputes" });
   const [resolveDispute] = useMutation(RESOLVE_DISPUTE);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [disputeError, setDisputeError] = useState<string | null>(null);
+  // Reseta a paginação ao mudar filtro/status: sem isto, um filtro que reduz a
+  // lista abaixo do offset atual deixava o admin preso numa página vazia (e os
+  // controles de paginação sumiam porque o total filtrado <= pageSize).
+  useEffect(() => setPage(0), [serverSearch, statusFilter]);
   // L4: TODO — Add dark mode support
 
-  const orders = data?.allOrders || [];
-
-  const filtered = orders.filter((o: any) => {
-    const matchesSearch =
-      !filter ||
-      o.orderNumber.toLowerCase().includes(filter.toLowerCase()) ||
-      o.customer?.name.toLowerCase().includes(filter.toLowerCase()) ||
-      o.store?.name.toLowerCase().includes(filter.toLowerCase());
-    const matchesStatus = !statusFilter || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // KAN-292: a pagina ja vem filtrada/paginada do servidor.
+  const orders = data?.allOrders?.items || [];
+  const total = data?.allOrders?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // H7: Dispute resolution handler
-  async function handleResolveDispute(orderId: string, resolution: "REFUND_CUSTOMER" | "RELEASE_VENDOR") {
-    const label = resolution === "REFUND_CUSTOMER" ? "reembolsar o cliente" : "liberar pagamento ao vendedor";
+  //
+  // Os valores enviados aqui eram "REFUND_CUSTOMER" / "RELEASE_VENDOR", mas o
+  // servidor so aceita CUSTOMER_FAVOR | VENDOR_FAVOR | DELIVERER_FAVOR
+  // (orders.service.ts:1159). Toda tentativa de resolver disputa voltava com
+  // "Resolucao invalida": nenhuma disputa era resolvivel pelo painel, o dinheiro
+  // ficava travado no split e o pedido permanecia DISPUTED para sempre.
+  async function handleResolveDispute(orderId: string, resolution: "CUSTOMER_FAVOR" | "VENDOR_FAVOR") {
+    const label = resolution === "CUSTOMER_FAVOR" ? "reembolsar o cliente" : "liberar pagamento ao vendedor";
     if (!confirm(`Confirma ${label} para o pedido?`)) return;
     setDisputeError(null);
     setResolvingId(orderId);
@@ -95,7 +129,8 @@ export default function OrdersPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">
-        Todos os Pedidos ({orders.length})
+        {/* Sem o guard de `data`, uma query com erro mostrava "Todos os Pedidos (0)". */}
+        Todos os Pedidos{data ? ` (${total})` : ""}
       </h1>
 
       {/* H7: Tab toggle for orders vs disputes */}
@@ -129,6 +164,14 @@ export default function OrdersPage() {
           )}
           {disputeLoading ? (
             <p className="text-gray-400">Carregando disputas...</p>
+          ) : disputeQueryError && !disputeData ? (
+            /* Antes do empty state: sem isto, uma falha na query virava
+               "Nenhuma disputa encontrada" e o admin ignorava disputas reais. */
+            <ErrorState
+              title="Nao foi possivel carregar as disputas."
+              description="Isto nao significa que nao ha disputas abertas — a consulta falhou."
+              onRetry={() => refetchDisputes()}
+            />
           ) : disputedOrders.length === 0 ? (
             <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 text-center">
               <p className="text-gray-400">Nenhuma disputa encontrada</p>
@@ -152,14 +195,14 @@ export default function OrdersPage() {
                   <p className="text-white font-bold mb-3">Total: {formatBRL(order.total)}</p>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => handleResolveDispute(order.id, "REFUND_CUSTOMER")}
+                      onClick={() => handleResolveDispute(order.id, "CUSTOMER_FAVOR")}
                       disabled={resolvingId === order.id}
                       className="px-4 py-2 bg-red-600/20 text-red-400 rounded-xl text-sm font-semibold hover:bg-red-600/30 transition cursor-pointer disabled:opacity-50"
                     >
                       A favor do cliente (reembolso)
                     </button>
                     <button
-                      onClick={() => handleResolveDispute(order.id, "RELEASE_VENDOR")}
+                      onClick={() => handleResolveDispute(order.id, "VENDOR_FAVOR")}
                       disabled={resolvingId === order.id}
                       className="px-4 py-2 bg-emerald-600/20 text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-600/30 transition cursor-pointer disabled:opacity-50"
                     >
@@ -173,7 +216,17 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {activeTab === "orders" && <>
+      {/* Query falhou e nao ha cache: mostra o erro em vez de "Nenhum pedido
+          encontrado", que faria o admin acreditar que nao ha pedidos no dia. */}
+      {activeTab === "orders" && ordersError && !data && (
+        <ErrorState
+          title="Nao foi possivel carregar os pedidos."
+          description="Isto nao significa que nao ha pedidos — a consulta falhou. Verifique sua conexao e tente novamente."
+          onRetry={() => refetchOrders()}
+        />
+      )}
+
+      {activeTab === "orders" && !(ordersError && !data) && <>
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
@@ -195,12 +248,12 @@ export default function OrdersPage() {
       </div>
 
       {/* H5: Pagination info */}
-      {filtered.length > 0 && (
-        <p className="text-xs text-gray-500 mb-2">Mostrando {Math.min(page * pageSize + 1, filtered.length)}-{Math.min((page + 1) * pageSize, filtered.length)} de {filtered.length}</p>
+      {total > 0 && (
+        <p className="text-xs text-gray-500 mb-2">Mostrando {page * pageSize + 1}-{page * pageSize + orders.length} de {total}</p>
       )}
 
       <div className="space-y-4">
-        {filtered.slice(page * pageSize, (page + 1) * pageSize).map((order: any) => {
+        {orders.map((order: any) => {
           const status = statusLabels[order.status] || {
             label: order.status,
             color: "bg-gray-600 text-gray-300",
@@ -311,13 +364,13 @@ export default function OrdersPage() {
           );
         })}
 
-        {filtered.length === 0 && (
+        {orders.length === 0 && (
           <p className="text-gray-500 text-center mt-10">Nenhum pedido encontrado</p>
         )}
       </div>
 
-      {/* H5: Pagination controls */}
-      {filtered.length > pageSize && (
+      {/* H5: Pagination controls (KAN-292: baseados no total do servidor) */}
+      {total > pageSize && (
         <div className="flex items-center justify-center gap-4 mt-6">
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -327,11 +380,11 @@ export default function OrdersPage() {
             Anterior
           </button>
           <span className="text-sm text-gray-400">
-            Pagina {page + 1} de {Math.ceil(filtered.length / pageSize)}
+            Pagina {page + 1} de {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(Math.ceil(filtered.length / pageSize) - 1, p + 1))}
-            disabled={page >= Math.ceil(filtered.length / pageSize) - 1}
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
             className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
           >
             Proximo
