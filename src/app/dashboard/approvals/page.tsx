@@ -4,15 +4,15 @@ import { useQuery, useMutation } from "@apollo/client";
 import {
   GET_PENDING_APP_APPROVALS,
   GET_PENDING_VENDOR_APPROVALS,
-  GET_ALL_APP_USERS,
-  GET_ALL_VENDOR_USERS,
+  GET_APPROVAL_USERS,
+  GET_APPROVAL_COUNTS,
   APPROVE_APP_USER,
   APPROVE_VENDOR_USER,
   REJECT_APP_USER,
   REJECT_VENDOR_USER,
   GET_APPROVAL_LOGS,
 } from "@/lib/graphql";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const roleLabels: Record<string, string> = {
   CUSTOMER: "Cliente",
@@ -264,24 +264,41 @@ function UserCard({
 
 // ─── Main Page ───
 export default function ApprovalsPage() {
-  // KAN-245: a aba precisa ser conhecida ANTES das queries para poder pular as
-  // pesadas. Antes esta linha vinha depois e as 5 queries disparavam juntas no
-  // mount — incluindo `GET_ALL_APP_USERS` e `GET_ALL_VENDOR_USERS`, que trazem
-  // a base INTEIRA de usuarios (com fotos de documento) so para reconstruir as
-  // abas de historico no cliente. Abrir "Aprovacoes" custava 5 requisicoes
-  // simultaneas, sendo que a aba inicial ("pendentes") usa apenas 2.
+  // KAN-245: paginacao/busca do historico agora sao NO SERVIDOR.
+  // Antes o painel puxava `allAppUsers` + `allVendorUsers` (as duas tabelas
+  // INTEIRAS, com fotos de documento) e filtrava/ordenava por approvedAt/
+  // rejectedAt no cliente — custo linear no total de usuarios a cada abertura.
+  // Agora as abas aprovados/rejeitados usam `approvalUsers` (UNION paginado) e a
+  // busca por nome/email vai pro servidor; os badges usam `approvalCounts`.
   const [tab, setTab] = useState<Tab>("pending");
-
-  // Histórico só é necessário nas abas de aprovados/rejeitados; os logs, só na
-  // aba de logs. Ficam sob demanda — ao abrir a aba, o Apollo busca.
-  const needsHistory = tab === "approved" || tab === "rejected";
   const needsLogs = tab === "logs";
+  const historyStatus: "approved" | "rejected" | null =
+    tab === "approved" ? "approved" : tab === "rejected" ? "rejected" : null;
+
+  const [filter, setFilter] = useState(""); // texto digitado no campo de busca
+  const [histSearch, setHistSearch] = useState(""); // valor debounced enviado ao servidor
+
+  // Debounce: so dispara a busca no servidor ~350ms depois de parar de digitar,
+  // para nao dar uma query por tecla.
+  useEffect(() => {
+    const t = setTimeout(() => setHistSearch(filter.trim()), 350);
+    return () => clearTimeout(t);
+  }, [filter]);
 
   const { data: appData, loading: loadingApp, refetch: refetchApp } = useQuery(GET_PENDING_APP_APPROVALS);
   const { data: vendorData, loading: loadingVendor, refetch: refetchVendor } = useQuery(GET_PENDING_VENDOR_APPROVALS);
-  const { data: allAppData, loading: loadingAllApp, refetch: refetchAllApp } = useQuery(GET_ALL_APP_USERS, { skip: !needsHistory });
-  const { data: allVendorData, loading: loadingAllVendor, refetch: refetchAllVendor } = useQuery(GET_ALL_VENDOR_USERS, { skip: !needsHistory });
+  const { data: countsData, refetch: refetchCounts } = useQuery(GET_APPROVAL_COUNTS);
+  const {
+    data: histData,
+    loading: loadingHist,
+    fetchMore,
+  } = useQuery(GET_APPROVAL_USERS, {
+    variables: { status: historyStatus || "approved", search: histSearch || null, limit: 20, offset: 0 },
+    skip: !historyStatus,
+    notifyOnNetworkStatusChange: true,
+  });
   const { data: logsData, loading: loadingLogs, refetch: refetchLogs } = useQuery(GET_APPROVAL_LOGS, { skip: !needsLogs });
+
   const [approveAppUser] = useMutation(APPROVE_APP_USER);
   const [approveVendorUser] = useMutation(APPROVE_VENDOR_USER);
   const [rejectAppUser] = useMutation(REJECT_APP_USER);
@@ -291,39 +308,38 @@ export default function ApprovalsPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [processing, setProcessing] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
-  const [filter, setFilter] = useState("");
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const loading = loadingApp || loadingVendor || loadingAllApp || loadingAllVendor || loadingLogs;
+  const loading = loadingApp || loadingVendor || loadingHist || loadingLogs;
 
   const logs: ApprovalLogEntry[] = logsData?.approvalLogs || [];
 
-  // Pending
+  // Pending (listas pequenas — junção/filtragem no cliente)
   const appPending: PendingUser[] = (appData?.pendingAppApprovals || []).map((u: any) => ({ ...u, _source: "app" }));
   const vendorPending: PendingUser[] = (vendorData?.pendingVendorApprovals || []).map((u: any) => ({ ...u, _source: "vendor" }));
   const pending = [...appPending, ...vendorPending];
 
-  // History from all users
-  const allApp: PendingUser[] = (allAppData?.allAppUsers || []).map((u: any) => ({ ...u, _source: "app" }));
-  const allVendor: PendingUser[] = (allVendorData?.allVendorUsers || []).map((u: any) => ({ ...u, _source: "vendor" }));
-  const allUsers = [...allApp, ...allVendor];
+  // Histórico paginado no servidor (aba aprovados/rejeitados)
+  const histItems: PendingUser[] = (histData?.approvalUsers?.items || []).map((u: any) => ({ ...u, _source: u.source }));
+  const histTotal: number = histData?.approvalUsers?.total ?? 0;
+  const histHasMore: boolean = histData?.approvalUsers?.hasMore ?? false;
 
-  const approved = allUsers
-    .filter((u) => u.approvedAt)
-    .sort((a, b) => new Date(b.approvedAt!).getTime() - new Date(a.approvedAt!).getTime());
+  const approvedCount = countsData?.approvalCounts?.approved ?? 0;
+  const rejectedCount = countsData?.approvalCounts?.rejected ?? 0;
 
-  const rejected = allUsers
-    .filter((u) => u.rejectedAt)
-    .sort((a, b) => new Date(b.rejectedAt!).getTime() - new Date(a.rejectedAt!).getTime());
-
-  // Filter
-  const currentList = tab === "pending" ? pending : tab === "approved" ? approved : tab === "rejected" ? rejected : [];
-  const filtered = filter
-    ? currentList.filter(
-        (u) =>
-          u.name.toLowerCase().includes(filter.toLowerCase()) ||
-          u.email.toLowerCase().includes(filter.toLowerCase())
-      )
-    : currentList;
+  // Lista corrente: pendentes filtram no cliente; histórico já vem filtrado do servidor.
+  const filtered =
+    tab === "pending"
+      ? filter
+        ? pending.filter(
+            (u) =>
+              u.name.toLowerCase().includes(filter.toLowerCase()) ||
+              u.email.toLowerCase().includes(filter.toLowerCase()),
+          )
+        : pending
+      : historyStatus
+        ? histItems
+        : [];
 
   const filteredLogs = filter
     ? logs.filter(
@@ -333,20 +349,42 @@ export default function ApprovalsPage() {
       )
     : logs;
 
+  async function loadMore() {
+    if (loadingMore || !histHasMore) return;
+    setLoadingMore(true);
+    try {
+      await fetchMore({
+        variables: { offset: histItems.length },
+        updateQuery: (prev: any, { fetchMoreResult }: any) => {
+          if (!fetchMoreResult) return prev;
+          return {
+            approvalUsers: {
+              ...fetchMoreResult.approvalUsers,
+              items: [
+                ...(prev.approvalUsers?.items || []),
+                ...fetchMoreResult.approvalUsers.items,
+              ],
+            },
+          };
+        },
+      });
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   async function handleApprove(user: PendingUser) {
     setProcessing(user.id);
     try {
       if (user._source === "vendor") {
         await approveVendorUser({ variables: { id: user.id } });
         refetchVendor();
-        if (needsHistory) refetchAllVendor();
-        if (needsLogs) refetchLogs();
       } else {
         await approveAppUser({ variables: { id: user.id } });
         refetchApp();
-        if (needsHistory) refetchAllApp();
-        if (needsLogs) refetchLogs();
       }
+      refetchCounts();
+      if (needsLogs) refetchLogs();
     } catch (err: unknown) {
       // O motivo do servidor importa (ex.: bloqueio por documentos faltando no
       // KYC) — engolir a mensagem deixava o admin sem saber o que corrigir.
@@ -366,14 +404,12 @@ export default function ApprovalsPage() {
       if (user._source === "vendor") {
         await rejectVendorUser({ variables: { id: user.id, reason: rejectReason } });
         refetchVendor();
-        if (needsHistory) refetchAllVendor();
-        if (needsLogs) refetchLogs();
       } else {
         await rejectAppUser({ variables: { id: user.id, reason: rejectReason } });
         refetchApp();
-        if (needsHistory) refetchAllApp();
-        if (needsLogs) refetchLogs();
       }
+      refetchCounts();
+      if (needsLogs) refetchLogs();
       setRejectingId(null);
       setRejectReason("");
     } catch (err: unknown) {
@@ -385,8 +421,8 @@ export default function ApprovalsPage() {
 
   const tabs: { key: Tab; label: string; count: number; color: string }[] = [
     { key: "pending", label: "Pendentes", count: pending.length, color: "bg-yellow-600 text-white" },
-    { key: "approved", label: "Aprovadas", count: approved.length, color: "bg-green-600 text-white" },
-    { key: "rejected", label: "Rejeitadas", count: rejected.length, color: "bg-red-600 text-white" },
+    { key: "approved", label: "Aprovadas", count: approvedCount, color: "bg-green-600 text-white" },
+    { key: "rejected", label: "Rejeitadas", count: rejectedCount, color: "bg-red-600 text-white" },
     { key: "logs", label: "Historico", count: logs.length, color: "bg-purple-600 text-white" },
   ];
 
@@ -401,7 +437,7 @@ export default function ApprovalsPage() {
         {tabs.map((t) => (
           <button
             key={t.key}
-            onClick={() => { setTab(t.key); setFilter(""); }}
+            onClick={() => { setTab(t.key); setFilter(""); setHistSearch(""); }}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer ${
               tab === t.key ? t.color : "bg-gray-800 text-gray-400 hover:bg-gray-700"
             }`}
@@ -461,6 +497,24 @@ export default function ApprovalsPage() {
               />
             ))}
           </div>
+
+          {/* KAN-245: paginacao server-side — carrega a proxima pagina sob demanda */}
+          {historyStatus && filtered.length > 0 && (
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <p className="text-sm text-gray-500">
+                Mostrando {filtered.length} de {histTotal}
+              </p>
+              {histHasMore && (
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-5 py-2.5 bg-gray-800 text-gray-200 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-700 disabled:opacity-50 transition border border-gray-700"
+                >
+                  {loadingMore ? "Carregando..." : "Carregar mais"}
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
 

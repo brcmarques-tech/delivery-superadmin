@@ -63,12 +63,27 @@ const allStatuses = ["", ...Object.keys(statusLabels)];
 
 export default function OrdersPage() {
   // L1: TODO — Replace `any` types with proper Order interface
-  const { data, loading, error: ordersError, refetch: refetchOrders } = useQuery(GET_ALL_ORDERS, { pollInterval: POLL_OPERATIONAL, ...skipPollWhenHidden });
   const [filter, setFilter] = useState("");
+  const [serverSearch, setServerSearch] = useState(""); // KAN-292: busca debounced enviada ao servidor
   const [statusFilter, setStatusFilter] = useState("");
   // H5: Pagination state
   const [page, setPage] = useState(0);
   const pageSize = 20;
+
+  // KAN-292: debounce da busca para nao disparar uma query por tecla.
+  useEffect(() => {
+    const t = setTimeout(() => setServerSearch(filter.trim()), 350);
+    return () => clearTimeout(t);
+  }, [filter]);
+
+  // KAN-292: filtro/busca/paginacao agora vao ao servidor (antes baixava a
+  // tabela inteira e filtrava/paginava no cliente, ainda com polling).
+  const { data, loading, error: ordersError, refetch: refetchOrders } = useQuery(GET_ALL_ORDERS, {
+    variables: { status: statusFilter || null, search: serverSearch || null, limit: pageSize, offset: page * pageSize },
+    pollInterval: POLL_OPERATIONAL,
+    ...skipPollWhenHidden,
+    notifyOnNetworkStatusChange: true,
+  });
   // H7: Dispute management
   const [activeTab, setActiveTab] = useState<"orders" | "disputes">("orders");
   const { data: disputeData, loading: disputeLoading, error: disputeQueryError, refetch: refetchDisputes } = useQuery(GET_DISPUTED_ORDERS, { skip: activeTab !== "disputes" });
@@ -78,22 +93,13 @@ export default function OrdersPage() {
   // Reseta a paginação ao mudar filtro/status: sem isto, um filtro que reduz a
   // lista abaixo do offset atual deixava o admin preso numa página vazia (e os
   // controles de paginação sumiam porque o total filtrado <= pageSize).
-  useEffect(() => setPage(0), [filter, statusFilter]);
+  useEffect(() => setPage(0), [serverSearch, statusFilter]);
   // L4: TODO — Add dark mode support
 
-  const orders = data?.allOrders || [];
-
-  const filtered = orders.filter((o: any) => {
-    // Frontend#3: o optional chain parava em customer/store — se a relação existe
-    // mas o `name` é null, `.toLowerCase()` estourava e a lista sumia a cada tecla.
-    const matchesSearch =
-      !filter ||
-      o.orderNumber?.toLowerCase().includes(filter.toLowerCase()) ||
-      o.customer?.name?.toLowerCase().includes(filter.toLowerCase()) ||
-      o.store?.name?.toLowerCase().includes(filter.toLowerCase());
-    const matchesStatus = !statusFilter || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // KAN-292: a pagina ja vem filtrada/paginada do servidor.
+  const orders = data?.allOrders?.items || [];
+  const total = data?.allOrders?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // H7: Dispute resolution handler
   //
@@ -124,7 +130,7 @@ export default function OrdersPage() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">
         {/* Sem o guard de `data`, uma query com erro mostrava "Todos os Pedidos (0)". */}
-        Todos os Pedidos{data ? ` (${orders.length})` : ""}
+        Todos os Pedidos{data ? ` (${total})` : ""}
       </h1>
 
       {/* H7: Tab toggle for orders vs disputes */}
@@ -242,12 +248,12 @@ export default function OrdersPage() {
       </div>
 
       {/* H5: Pagination info */}
-      {filtered.length > 0 && (
-        <p className="text-xs text-gray-500 mb-2">Mostrando {Math.min(page * pageSize + 1, filtered.length)}-{Math.min((page + 1) * pageSize, filtered.length)} de {filtered.length}</p>
+      {total > 0 && (
+        <p className="text-xs text-gray-500 mb-2">Mostrando {page * pageSize + 1}-{page * pageSize + orders.length} de {total}</p>
       )}
 
       <div className="space-y-4">
-        {filtered.slice(page * pageSize, (page + 1) * pageSize).map((order: any) => {
+        {orders.map((order: any) => {
           const status = statusLabels[order.status] || {
             label: order.status,
             color: "bg-gray-600 text-gray-300",
@@ -358,13 +364,13 @@ export default function OrdersPage() {
           );
         })}
 
-        {filtered.length === 0 && (
+        {orders.length === 0 && (
           <p className="text-gray-500 text-center mt-10">Nenhum pedido encontrado</p>
         )}
       </div>
 
-      {/* H5: Pagination controls */}
-      {filtered.length > pageSize && (
+      {/* H5: Pagination controls (KAN-292: baseados no total do servidor) */}
+      {total > pageSize && (
         <div className="flex items-center justify-center gap-4 mt-6">
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -374,11 +380,11 @@ export default function OrdersPage() {
             Anterior
           </button>
           <span className="text-sm text-gray-400">
-            Pagina {page + 1} de {Math.ceil(filtered.length / pageSize)}
+            Pagina {page + 1} de {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(Math.ceil(filtered.length / pageSize) - 1, p + 1))}
-            disabled={page >= Math.ceil(filtered.length / pageSize) - 1}
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
             className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm border border-gray-700 hover:bg-gray-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-default"
           >
             Proximo

@@ -64,6 +64,64 @@ export const GET_ALL_VENDOR_USERS = gql`
   }
 `;
 
+// KAN-245: historico de aprovacoes/rejeicoes paginado no servidor. Substitui o
+// uso de GET_ALL_APP_USERS/GET_ALL_VENDOR_USERS (base inteira) na tela de
+// aprovacoes. Busca por nome/email tambem vai para o servidor.
+export const GET_APPROVAL_USERS = gql`
+  query ApprovalUsers($status: String!, $search: String, $limit: Float, $offset: Float) {
+    approvalUsers(status: $status, search: $search, limit: $limit, offset: $offset) {
+      total
+      hasMore
+      items {
+        id name email phone role pendingRole cpf
+        vehicleType vehiclePlate identityPhotoUrl identityPhotoBackUrl profilePhotoUrl
+        approvedAt rejectedAt rejectionReason createdAt source
+      }
+    }
+  }
+`;
+
+export const GET_APPROVAL_COUNTS = gql`
+  query ApprovalCounts {
+    approvalCounts { approved rejected }
+  }
+`;
+
+// KAN-292: painel de Usuarios paginado no servidor (por papel + busca).
+export const GET_APP_USERS_BY_ROLE = gql`
+  query AppUsersByRole($role: String!, $search: String, $limit: Float, $offset: Float) {
+    appUsersByRole(role: $role, search: $search, limit: $limit, offset: $offset) {
+      total
+      hasMore
+      items {
+        id name email phone role isActive createdAt
+        cpf vehicleType vehiclePlate identityPhotoUrl profilePhotoUrl
+        paymentConnected
+      }
+    }
+  }
+`;
+
+export const GET_VENDOR_USERS_PAGE = gql`
+  query VendorUsersPage($search: String, $limit: Int, $offset: Int) {
+    vendorUsersPage(search: $search, limit: $limit, offset: $offset) {
+      total
+      hasMore
+      items {
+        id name email phone isActive createdAt
+        cpf vendorPlan paymentConnected
+        stores { id name }
+      }
+    }
+  }
+`;
+
+export const GET_APP_USER_ROLE_COUNTS = gql`
+  query AppUserRoleCounts {
+    appUserRoleCounts { customers deliverers admins }
+  }
+`;
+
 export const UPDATE_APP_USER_ROLE = gql`
   mutation UpdateAppUserRole($id: String!, $role: UserRole!) {
     updateAppUserRole(id: $id, role: $role) { id role }
@@ -193,16 +251,21 @@ export const GET_APPROVAL_LOGS = gql`
   }
 `;
 
+// KAN-292: paginado no servidor (status/busca/limit/offset).
 export const GET_ALL_ORDERS = gql`
-  query AllOrders {
-    allOrders {
-      id orderNumber status total subtotal deliveryFee
-      paymentMethod isPickup customerConfirmedAt
-      deliveryAddress notes createdAt
-      customer { id name email phone }
-      store { id name }
-      items { id quantity totalPrice product { name price } }
-      delivery { id deliverer { name phone } pickedUpAt deliveredAt }
+  query AllOrders($status: String, $search: String, $limit: Int, $offset: Int) {
+    allOrders(status: $status, search: $search, limit: $limit, offset: $offset) {
+      total
+      hasMore
+      items {
+        id orderNumber status total subtotal deliveryFee
+        paymentMethod isPickup customerConfirmedAt
+        deliveryAddress notes createdAt
+        customer { id name email phone }
+        store { id name }
+        items { id quantity totalPrice product { name price } }
+        delivery { id deliverer { name phone } pickedUpAt deliveredAt }
+      }
     }
   }
 `;
@@ -378,15 +441,26 @@ export const UPDATE_CONTRACT_CONTENT = gql`
   }
 `;
 
+// KAN-292: paginado no servidor (status/busca/limit/offset).
 export const GET_ALL_DELIVERIES = gql`
-  query AllDeliveries {
-    allDeliveries {
-      id pickedUpAt deliveredAt createdAt
-      payoutStatus payoutAmount payoutMpId
-      vendorPayoutStatus vendorPayoutAmount vendorPayoutMpId
-      deliverer { id name phone }
-      order { id orderNumber status total deliveryFee deliveryAddress store { id name hasOwnDelivery } customer { id name phone } }
+  query AllDeliveries($status: String, $search: String, $limit: Int, $offset: Int) {
+    allDeliveries(status: $status, search: $search, limit: $limit, offset: $offset) {
+      total
+      hasMore
+      items {
+        id pickedUpAt deliveredAt createdAt
+        payoutStatus payoutAmount payoutMpId
+        vendorPayoutStatus vendorPayoutAmount vendorPayoutMpId
+        deliverer { id name phone }
+        order { id orderNumber status total deliveryFee deliveryAddress store { id name hasOwnDelivery } customer { id name phone } }
+      }
     }
+  }
+`;
+
+export const GET_DELIVERY_COUNTS = gql`
+  query DeliveryCounts {
+    deliveryCounts { total active completed }
   }
 `;
 
