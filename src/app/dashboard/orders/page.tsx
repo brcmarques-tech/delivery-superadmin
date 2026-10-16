@@ -7,6 +7,7 @@ import { gql } from "@apollo/client";
 import ErrorState from "@/components/ErrorState";
 
 import { POLL_OPERATIONAL, skipPollWhenHidden } from "@/lib/polling"; // KAN-246
+import { EvidenciaDeEntrega } from "@/components/EvidenciaDeEntrega";
 // L2: Locale-formatted currency
 const formatBRL = (value: number | string) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value));
@@ -193,6 +194,14 @@ export default function OrdersPage() {
                   <p className="text-gray-300 text-sm mb-2">Cliente: {order.customer?.name} | Loja: {order.store?.name}</p>
                   <p className="text-gray-400 text-sm mb-3">Motivo: {order.disputeReason || "Nao informado"}</p>
                   <p className="text-white font-bold mb-3">Total: {formatBRL(order.total)}</p>
+
+                  {/* O outro lado da história. O "Motivo" acima é o que o
+                      CLIENTE escreveu; isto traz o que o sistema registrou —
+                      horários de cada código, GPS da coleta e da entrega, e o
+                      que o ENTREGADOR escreveu se registrou sem código.
+                      Sem isso a decisão abaixo é tomada no escuro, e ela é
+                      cara: repasse já feito não se recupera (KAN-303). */}
+                  <EvidenciaDeEntrega orderId={order.id} />
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleResolveDispute(order.id, "CUSTOMER_FAVOR")}
