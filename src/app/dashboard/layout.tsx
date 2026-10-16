@@ -22,6 +22,13 @@ const ROUTE_PERMISSION: Record<string, string> = {
   "/dashboard/orders": "orders",
   "/dashboard/deliveries": "deliveries",
   "/dashboard/payments": "payments",
+  // A tela de repasses lista DUAS dívidas com origens diferentes: entregador
+  // (frete retido no split do PIX) e lojista (transferência recusada pelo
+  // allowlist de IP). No servidor cada query tem sua permissão — 'deliveries'
+  // e 'finance' — e o guard falha FECHADO em chave ausente. Aqui o menu usa
+  // 'finance': quem só tivesse 'deliveries' veria o link, abriria a página e
+  // receberia erro na aba de lojistas, o que é pior do que não ver o link.
+  "/dashboard/repasses": "finance",
   "/dashboard/plans": "plans",
   "/dashboard/badges": "badges",
   "/dashboard/promotions": "promotions",
@@ -69,6 +76,7 @@ const navGroups = [
     label: "Financeiro",
     items: [
       { href: "/dashboard/payments", label: "Pagamentos", perm: "payments" },
+      { href: "/dashboard/repasses", label: "Repasses retidos", perm: "finance" },
       { href: "/dashboard/plans", label: "Planos", perm: "plans" },
     ],
   },
