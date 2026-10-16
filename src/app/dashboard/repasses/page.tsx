@@ -84,6 +84,46 @@ const VENDOR_PAYABLES = gql`
   }
 `;
 
+// Agendamentos com repasse retido. Mesma origem do caso de lojista (bloqueio
+// de IP), tabela diferente — por isso query própria em vez de uma união.
+//
+// Não é uma aba "extra": sem ela, o passivo de serviço seria exatamente o que
+// as outras duas abas deixaram de ser — dinheiro devido sem lugar onde somar.
+const AGENDAMENTO_PAYABLES = gql`
+  query AppointmentVendorPayables($apenasAbertos: Boolean) {
+    appointmentVendorPayables(apenasAbertos: $apenasAbertos) {
+      id
+      appointmentNumber
+      price
+      scheduledDate
+      vendorPayableCents
+      vendorPayablePaidAt
+      store {
+        id
+        name
+        owner {
+          id
+          name
+          phone
+        }
+      }
+      service {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const BAIXA_AGENDAMENTO = gql`
+  mutation MarkAppointmentVendorPayablePaid($appointmentId: String!) {
+    markAppointmentVendorPayablePaid(appointmentId: $appointmentId) {
+      id
+      vendorPayablePaidAt
+    }
+  }
+`;
+
 const BAIXA_ENTREGADOR = gql`
   mutation MarkDelivererPayablePaid($orderId: String!) {
     markDelivererPayablePaid(orderId: $orderId) {
@@ -109,8 +149,10 @@ const brl = (centavos?: number | null) =>
 
 const dia = (d?: string | null) => (d ? new Date(d).toLocaleDateString("pt-BR") : "—");
 
+type Aba = "entregador" | "lojista" | "agendamento";
+
 export default function RepassesPage() {
-  const [aba, setAba] = useState<"entregador" | "lojista">("entregador");
+  const [aba, setAba] = useState<Aba>("entregador");
   const [apenasAbertos, setApenasAbertos] = useState(true);
   const [baixando, setBaixando] = useState<string | null>(null);
   const [erroBaixa, setErroBaixa] = useState<string | null>(null);
@@ -125,12 +167,19 @@ export default function RepassesPage() {
     pollInterval: POLL_BACKGROUND,
     ...skipPollWhenHidden,
   });
+  const agd = useQuery(AGENDAMENTO_PAYABLES, {
+    variables: { apenasAbertos },
+    pollInterval: POLL_BACKGROUND,
+    ...skipPollWhenHidden,
+  });
 
   const [baixaEntregador] = useMutation(BAIXA_ENTREGADOR);
   const [baixaLojista] = useMutation(BAIXA_LOJISTA);
+  const [baixaAgendamento] = useMutation(BAIXA_AGENDAMENTO);
 
   const listaEnt = ent.data?.delivererPayables || [];
   const listaLoj = loj.data?.vendorPayables || [];
+  const listaAgd = agd.data?.appointmentVendorPayables || [];
 
   const somaEnt = listaEnt
     .filter((o: any) => !o.delivererPayablePaidAt)
@@ -138,18 +187,25 @@ export default function RepassesPage() {
   const somaLoj = listaLoj
     .filter((o: any) => !o.vendorPayablePaidAt)
     .reduce((s: number, o: any) => s + (Number(o.vendorPayableCents) || 0), 0);
+  const somaAgd = listaAgd
+    .filter((a: any) => !a.vendorPayablePaidAt)
+    .reduce((s: number, a: any) => s + (Number(a.vendorPayableCents) || 0), 0);
 
-  async function darBaixa(orderId: string, tipo: "entregador" | "lojista") {
+  async function darBaixa(id: string, tipo: Aba) {
     if (baixando) return;
-    setBaixando(orderId);
+    setBaixando(id);
     setErroBaixa(null);
     try {
       if (tipo === "entregador") {
-        await baixaEntregador({ variables: { orderId } });
+        await baixaEntregador({ variables: { orderId: id } });
         await ent.refetch();
-      } else {
-        await baixaLojista({ variables: { orderId } });
+      } else if (tipo === "lojista") {
+        await baixaLojista({ variables: { orderId: id } });
         await loj.refetch();
+      } else {
+        // O argumento aqui é `appointmentId`, não `orderId`: é outra tabela.
+        await baixaAgendamento({ variables: { appointmentId: id } });
+        await agd.refetch();
       }
     } catch (e: any) {
       // A mensagem do servidor vai literal: ela distingue "ja foi baixado" de
@@ -160,7 +216,7 @@ export default function RepassesPage() {
     }
   }
 
-  const erro = ent.error || loj.error;
+  const erro = ent.error || loj.error || agd.error;
   if (erro) {
     return (
       <div className="p-6">
@@ -168,38 +224,60 @@ export default function RepassesPage() {
         <ErrorState
           title="Não deu para carregar os repasses retidos"
           description={erro.message}
-          onRetry={() => { ent.refetch(); loj.refetch(); }}
+          onRetry={() => { ent.refetch(); loj.refetch(); agd.refetch(); }}
         />
       </div>
     );
   }
 
-  const carregando = (aba === "entregador" ? ent.loading : loj.loading) && !ent.data && !loj.data;
-  const lista: any[] = aba === "entregador" ? listaEnt : listaLoj;
+  const porAba = {
+    entregador: { lista: listaEnt, carregando: ent.loading, temDado: !!ent.data },
+    lojista: { lista: listaLoj, carregando: loj.loading, temDado: !!loj.data },
+    agendamento: { lista: listaAgd, carregando: agd.loading, temDado: !!agd.data },
+  }[aba];
+  const carregando = porAba.carregando && !porAba.temDado;
+  const lista: any[] = porAba.lista;
+
+  // O TOTAL GERAL em primeiro lugar. Os três números separados dizem de onde
+  // vem a dívida; este diz o tamanho dela — e é o que responde "isto está sob
+  // controle?". Antes da terceira aba dava para somar de cabeça; com três
+  // parcelas, deixar a soma por conta de quem lê é convidar ao erro.
+  const somaTotal = somaEnt + somaLoj + somaAgd;
+  const abertosEnt = listaEnt.filter((o: any) => !o.delivererPayablePaidAt).length;
+  const abertosLoj = listaLoj.filter((o: any) => !o.vendorPayablePaidAt).length;
+  const abertosAgd = listaAgd.filter((a: any) => !a.vendorPayablePaidAt).length;
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-white mb-1">Repasses retidos</h1>
       <p className="text-sm text-gray-400 mb-5">
-        Dinheiro de pedidos concluídos que ficou com a plataforma e é devido a terceiros.
+        Dinheiro de pedidos e serviços concluídos que ficou com a plataforma e é devido a terceiros.
       </p>
 
-      {/* O total em aberto vem antes da lista: e o numero que diz se isto
-          esta sob controle ou virando bola de neve. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+      <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 mb-3">
+        <p className="text-xs text-gray-400">Total em aberto</p>
+        <p className="text-3xl font-bold text-amber-400">{brl(somaTotal)}</p>
+        <p className="text-xs text-gray-500 mt-1">
+          {abertosEnt + abertosLoj + abertosAgd} caso(s) aguardando repasse
+        </p>
+      </div>
+
+      {/* A quebra por origem: cada uma tem causa e saida diferentes. */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="text-xs text-gray-400">Devido a entregadores</p>
           <p className="text-2xl font-bold text-amber-400">{brl(somaEnt)}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {listaEnt.filter((o: any) => !o.delivererPayablePaidAt).length} pedido(s) em aberto
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{abertosEnt} pedido(s) em aberto</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="text-xs text-gray-400">Devido a lojistas</p>
           <p className="text-2xl font-bold text-amber-400">{brl(somaLoj)}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {listaLoj.filter((o: any) => !o.vendorPayablePaidAt).length} pedido(s) em aberto
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{abertosLoj} pedido(s) em aberto</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs text-gray-400">Devido por serviços</p>
+          <p className="text-2xl font-bold text-amber-400">{brl(somaAgd)}</p>
+          <p className="text-xs text-gray-500 mt-1">{abertosAgd} agendamento(s) em aberto</p>
         </div>
       </div>
 
@@ -220,6 +298,14 @@ export default function RepassesPage() {
         >
           Lojistas ({listaLoj.length})
         </button>
+        <button
+          onClick={() => setAba("agendamento")}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer ${
+            aba === "agendamento" ? "bg-white/15 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10"
+          }`}
+        >
+          Serviços ({listaAgd.length})
+        </button>
         <label className="ml-auto flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
           <input
             type="checkbox"
@@ -232,11 +318,16 @@ export default function RepassesPage() {
       </div>
 
       {/* Por que cada caso esta retido. Sem isto a tela parece uma lista de
-          falhas, e nao duas situacoes com causas e saidas diferentes. */}
+          falhas, e nao tres situacoes com causas e saidas diferentes — as duas
+          do bloqueio de IP, inclusive, se resolvem sozinhas no dia em que o IP
+          for liberado, porque o retry volta a passar. */}
       <p className="text-xs text-gray-500 mb-4">
-        {aba === "entregador"
-          ? "No PIX com split na cobrança o entregador não entra na divisão — ele só é conhecido no READY, depois de o pagamento já ter sido dividido. O frete dele fica retido e o repasse é manual."
-          : "A transferência foi tentada e o provedor recusou por bloqueio de origem (allowlist de IP do Pagar.me). Liberar o IP destrava estes casos e também a antecipação — ver KAN-299."}
+        {aba === "entregador" &&
+          "No PIX com split na cobrança o entregador não entra na divisão — ele só é conhecido no READY, depois de o pagamento já ter sido dividido. O frete dele fica retido e o repasse é manual."}
+        {aba === "lojista" &&
+          "A transferência foi tentada e o provedor recusou por bloqueio de origem (allowlist de IP do Pagar.me). Liberar o IP destrava estes casos e também a antecipação — ver KAN-299."}
+        {aba === "agendamento" &&
+          "Mesma causa da aba de lojistas, em serviços: a transferência ao prestador foi recusada por bloqueio de origem. Estes continuam na fila de retry de 48h, então liberar o IP dentro da janela resolve sem ninguém dar baixa à mão."}
       </p>
 
       {erroBaixa && (
@@ -258,10 +349,17 @@ export default function RepassesPage() {
       ) : (
         <div className="space-y-2">
           {lista.map((o: any) => {
+            // As três origens vivem em tabelas diferentes e têm nomes de campo
+            // diferentes. Normalizo aqui em vez de espalhar ternários pelo JSX:
+            // é o único ponto do componente que precisa saber dessa diferença.
             const ehEntregador = aba === "entregador";
+            const ehAgendamento = aba === "agendamento";
             const centavos = ehEntregador ? o.delivererPayableCents : o.vendorPayableCents;
             const pagoEm = ehEntregador ? o.delivererPayablePaidAt : o.vendorPayablePaidAt;
             const quem = ehEntregador ? o.delivery?.deliverer : o.store?.owner;
+            const identificador = ehAgendamento ? o.appointmentNumber : o.orderNumber;
+            const quando = ehAgendamento ? o.scheduledDate : o.completedAt;
+            const rotuloData = ehAgendamento ? " · agendado para " : " · concluído em ";
             return (
               <div
                 key={o.id}
@@ -269,14 +367,18 @@ export default function RepassesPage() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-white font-semibold text-sm">
-                    #{o.orderNumber}
-                    <span className="text-gray-500 font-normal"> · {o.store?.name}</span>
+                    #{identificador}
+                    <span className="text-gray-500 font-normal">
+                      {" · "}
+                      {o.store?.name}
+                      {ehAgendamento && o.service?.name ? ` · ${o.service.name}` : ""}
+                    </span>
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {quem?.name || "—"}
                     {quem?.phone ? ` · ${quem.phone}` : ""}
-                    {" · concluído em "}
-                    {dia(o.completedAt)}
+                    {rotuloData}
+                    {dia(quando)}
                   </p>
                 </div>
                 <p className="text-lg font-bold text-amber-400 whitespace-nowrap">{brl(centavos)}</p>
