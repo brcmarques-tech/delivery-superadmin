@@ -28,6 +28,7 @@ const ROUTE_PERMISSION: Record<string, string> = {
   // e 'finance' — e o guard falha FECHADO em chave ausente. Aqui o menu usa
   // 'finance': quem só tivesse 'deliveries' veria o link, abriria a página e
   // receberia erro na aba de lojistas, o que é pior do que não ver o link.
+  "/dashboard/financeiro": "finance",
   "/dashboard/repasses": "finance",
   "/dashboard/plans": "plans",
   "/dashboard/badges": "badges",
@@ -75,6 +76,7 @@ const navGroups = [
   {
     label: "Financeiro",
     items: [
+      { href: "/dashboard/financeiro", label: "Financeiro", perm: "finance" },
       { href: "/dashboard/payments", label: "Pagamentos", perm: "payments" },
       { href: "/dashboard/repasses", label: "Repasses retidos", perm: "finance" },
       { href: "/dashboard/plans", label: "Planos", perm: "plans" },
